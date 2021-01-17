@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>form</title>
+</head>
+<body>
+<!--表單form
+action:         表單提交嘅位置，可以係一個網站，或者一個請求處理嘅地址
+method 提交方式:
+    get     會係url顯示表單內容，但比較高效
+    post    唔會係url顯示
+-->
+<form action="xxxxx" method="post">
+    <!--placeholder用處係顯示默認值，required係必須要填寫-->
+    <p>Username: <input type="text" name="username" placeholder="Please enter username" required></input></p>
+    <p>Password: <input type="password" name="pwd"></p>
+
+    <!--單選框-->
+    <!--如要單選，name必須一樣，用以證明佢地係同一組，同一組只能選一個-->
+    <p>
+        Sex:
+        <input type="radio" value="boy" name="sex">Male
+        <input type="radio" value="girl" name="sex">Female
+    </p>
+
+    <!--多選框，留意input可用checked變默認選擇-->
+    <p>
+        Hobby:
+        <input type="checkbox" value="sleep" name="hobby">Sleep</input>
+        <input type="checkbox" value="code" name="hobby">Code</input>
+        <input type="checkbox" value="game" name="hobby">Play game</input>
+    </p>
+
+    <!--按鈕-->
+    <p>
+        Button:
+        <input type="button" name="btn1" value="I am a button">
+    </p>
+
+    <!--下拉框，列表框，留意option可用selected變默認值-->
+    <p>
+        Selection your home district
+        <select name="HomeArea">
+            <option value="ST" selected>Sha Tin</option>
+            <option value="CT">Central</option>
+            <option value="TM">Tun Mun</option>
+        </select>
+    </p>
+
+    <!--文本域-->
+    <p>
+        Comment:
+        <textarea name="textarea" cols="50" rows="10"></textarea>
+    </p>
+
+    <!--選擇文件-->
+    <p>
+        <input type="file" name="file">
+        <input type="button" value="upload" name="uploadbtn">
+    </p>
+
+    <!--郵箱，留意label，點擊後鍵盤輸入會自動放係輸入框-->
+    <p>
+        <label for="email">Email:</label>
+        <input type="email" name="email" id="email">
+    </p>
+
+    <!--url-->
+    <p>
+        <label for="url">URL:</label>
+        <input type="url" name="url" id="url">
+    </p>
+
+    <!--數字框，step會創建一個增加減少嘅尖嘴，入面嘅數字代表每次點擊後加減幾多次-->
+    <p>
+        Number:
+        <input type="number" name="number" max="9999999999" min="0" step="1">
+    </p>
+
+    <!--滑塊-->
+    <p>
+        Volume:
+        <input type="range" name="volume" min="0" max="100" step="2">
+    </p>
+
+    <!--搜索框-->
+    <p>
+        Search:
+        <input type="search" name="search">
+    </p>
+
+    <p>
+        <input type="submit">
+        <input type="reset">
+    </p>
+</form>
+</body>
+</html>
