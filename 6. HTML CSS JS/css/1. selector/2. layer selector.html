@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>layer selector</title>
+
+	<style type="text/css">
+		/*1. 後代選擇器
+			元素下面所有該項label全被選中
+			例如呢度係揀曬所有p (p1-p6)
+		*/
+		body p{
+			color: red;
+		}
+		/*2. 子選擇器
+			只選一代，只選一代，只選一代
+			例如呢度係只選p1-p3
+		*/
+		body>p{
+			color: pink;
+		}
+
+		/*3. 兄弟(弟弟)選擇器
+			只睇下面一個兄弟，如果符合條件就揀佢 ******上面係唔睇
+			例如呢度揀嘅係p2下面嘅兄弟，所以係p3，p1唔關事
+		*/
+		.class1 + p{
+			background-color: yellow;
+		}
+
+		/*4. 通用(所有弟弟)選擇器
+			選擇同級樓下所有兄弟
+			例如呢度會揀p3,p7,p8
+		*/
+		.class~p{
+			background-color: red;
+		}
+
+	</style>
+</head>
+<body>
+	<p>p1</p>
+	<p class="class1">p2</p>
+	<p>p3</p>
+	<ul>
+		<li>
+			<p>p4</p>
+		</li>
+		<li>
+			<p>p5</p>
+		</li>
+		<li>
+			<p>p6</p>
+		</li>
+	</ul>
+	<p>p7</p>
+	<p>p8</p>
+</body>
+</html>
