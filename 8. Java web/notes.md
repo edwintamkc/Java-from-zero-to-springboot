@@ -414,3 +414,74 @@ public class PropertiesServlet extends HttpServlet {
 ![image-20210120173121153](notes.assets/image-20210120173121153.png)
 
 > 成功！
+
+
+
+## 5.5 Servlet Response
+
+### 5.5.1 下載文件
+
+![image-20210120185656564](notes.assets/image-20210120185656564.png)
+
+留意左下角，輸入url後直接下載果個file
+
+```java
+package com.test.servlet;
+
+import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.FileInputStream;
+import java.io.IOException;
+
+public class FileServlet extends HttpServlet {
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        // 1. 獲取文件absolute path (full path)
+        String abPath = "D:\\CS\\Git\\JavaPractice\\8. Java web\\servlet\\servlet-03\\src\\main\\resources\\1.jpg";
+        // 2. 獲取文件名 (for download)
+        String filename = "1.jpg";
+        // 3. 設置瀏覽器，令佢可以支持下載呢個文件
+        resp.setHeader("Content-Disposition", "attachment;filename=" + filename);
+        // 4. 獲取文件inputstream
+        FileInputStream in = new FileInputStream(abPath);
+        // 5. buffer
+        int len = 0;
+        byte[] buffer = new byte[1024];
+        // 6. 獲取outstream object
+        ServletOutputStream out = resp.getOutputStream();
+        // 7. 將FileoutputStream (ServletOutputStream) 寫入buffer，然後輸出
+        while((len = in.read(buffer)) > 0){
+            out.write(buffer,0,len);
+        }
+        // 8. close
+        in.close();
+        out.close();
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        doGet(req, resp);
+    }
+}
+```
+
+### 5.5.2 重定向 (重要)
+
+> A向B 呢個server sd request，B通知A：我呢度無，你去C搵，A收到後再向C sd request
+>
+> 常見場景：登陸後，成功則跳轉到第二個page
+
+![image-20210120230520667](notes.assets/image-20210120230520667.png)
+
+好簡單，就係直接set佢跳去邊個url: /test01 係之前嘅file，會下載一個jpg，**留意只寫/test01係唔得，要寫埋呢個project嘅base url (就係/test)，所以加埋係/test/test01**
+
+>呢個sendRedirect()嘅底層原理有2步
+>
+>1. resp.setHeader("Location", "/test/test01");   //將location換做呢個
+>
+>2. resp.setStatus(302); // 而302 係server就係 = 文件移動
+>
+>   ![image-20210120230815749](notes.assets/image-20210120230815749.png)

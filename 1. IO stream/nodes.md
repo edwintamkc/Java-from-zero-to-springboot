@@ -248,3 +248,19 @@ System.out 會return一個PrintStream object，跟住我地call 佢嘅println() 
 PrintStream default ouput place係console，我地可以用第12行改佢嘅output place，跟住寫個log~
 
 當有事件發生果陣就加埋時間寫入log入面
+
+
+
+# 6. 常用操作
+
+![image-20210120212309806](nodes.assets/image-20210120212309806.png)
+
+## 6.1 File
+
+
+
+![image-20210120211217288](nodes.assets/image-20210120211217288.png)
+
+### 6.1.1 input
+
+![image-20210120213904152](nodes.assets/image-20210120213904152.png)
