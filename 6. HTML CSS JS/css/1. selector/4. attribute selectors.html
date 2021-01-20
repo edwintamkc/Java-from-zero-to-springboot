@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+    <style>
+        .test a{
+            float: left;
+            display: block;
+            height: 50px;
+            width: 50px;
+            border-radius: 15px;         /*圓邊框*/
+            background: cornflowerblue;
+            text-align: center;          /*將文字居中係block度*/
+            color: crimson;
+            text-decoration: none;       /* 取消a label下面嘅刪除線*/
+            font : bold 20px/50px Arial; /*字體調整 大小/行高 字體選擇*/
+            margin-right: 10px;
+        }
+
+        /*
+        選擇存在id嘅元素
+        因此選中1及4
+        */
+        a[id]{
+            background: yellow;
+        }
+        /*
+        選擇id = first嘅元素 (完全等於)
+        因此選中1
+        */
+        a[id=first]{
+            background: pink;
+        }
+
+        /*
+        選擇class有link嘅元素 (有就ok)
+        因此選中1,2,6,8
+        */
+        a[class*=link]{
+            background: darkcyan;
+        }
+
+        /*
+        選擇class以secondlink開頭的元素
+        因此選中6
+        */
+        a[class^=secondlink]{
+            background: dodgerblue;
+        }
+
+        /*
+        選擇class以thirdlink結尾的元素
+        因此選中8
+        */
+        a[class$=thirdlink]{
+            background: orange;
+        }
+
+    </style>
+
+</head>
+<body>
+    <p class="test">
+        <a href="https://www.google.com" class="link item first" id="first">1</a>
+        <a href="adfasdf.png" class="link item" target="_blank">2</a>
+        <a href="qweqzxc123.jpg">3</a>
+        <a href="abc.pdf"   id="second">4</a>
+        <a href="13123.mp3">5</a>
+        <a href="asdf.doc" class="secondlink link ">6</a>
+        <a href="test.txt">7</a>
+        <a href="test02.txt" class="link secondlink thirdlink">8</a>
+    </p>
+</body>
+</html>
