@@ -286,7 +286,7 @@ Deployment下新增一個.war，application context相當於係主頁嘅url ?
 
 
 
-### 5.4.3 轉發請求
+### 5.4.3 轉發請求 (dispatch)
 
 一個Servlet收到請求後，可以轉發去其他servlet
 
@@ -321,6 +321,10 @@ public class Dispatch extends HttpServlet {
 }
 ```
 
+> > **留意轉發係唔需要寫項目名，直接寫/文件位置 (係xml登記嘅位置)就得！！**
+> >
+> > **而redirect係要寫項目名**
+>
 > 轉發嘅Servlet有以下內容
 
 ![image-20210120164900651](notes.assets/image-20210120164900651.png)
@@ -468,15 +472,19 @@ public class FileServlet extends HttpServlet {
 }
 ```
 
-### 5.5.2 重定向 (重要)
+### 5.5.2 redirect (重要)
 
 > A向B 呢個server sd request，B通知A：我呢度無，你去C搵，A收到後再向C sd request
 >
 > 常見場景：登陸後，成功則跳轉到第二個page
+>
+> **留意轉發係唔需要寫項目名，直接寫/文件位置 (係xml登記嘅位置)就得！！**
+>
+> **而redirect係要寫項目名**
 
 ![image-20210120230520667](notes.assets/image-20210120230520667.png)
 
-好簡單，就係直接set佢跳去邊個url: /test01 係之前嘅file，會下載一個jpg，**留意只寫/test01係唔得，要寫埋呢個project嘅base url (就係/test)，所以加埋係/test/test01**
+好簡單，就係直接set佢跳去邊個url: /test01 係之前嘅file，呢個file會下載一個jpg，**留意只寫/test01係唔得，要寫埋呢個project嘅base url (就係/test)，所以加埋係/test/test01**
 
 >呢個sendRedirect()嘅底層原理有2步
 >
@@ -485,3 +493,149 @@ public class FileServlet extends HttpServlet {
 >2. resp.setStatus(302); // 而302 係server就係 = 文件移動
 >
 >   ![image-20210120230815749](notes.assets/image-20210120230815749.png)
+
+
+
+## 5.6 Servlet Request
+
+### 5.6.1 getParameter
+
+> 從表單中獲取數據，表單如下
+
+```jsp
+<html>
+<body>
+<h2>Hello World!</h2>
+
+<!--${pageContext.request.contextPath} 用作表示當前項目，亦姐係/test (/test就係當前項目)-->
+<form action="${pageContext.request.contextPath}/login" method="post">
+    Username: <input type="text" name="username"> <br>
+    Password: <input type="password" name="password"> <br>
+    <input type="checkbox" name="hobbies" class="hobby-1"> girls
+    <input type="checkbox" name="hobbies" class="hobby-2"> code
+    <input type="checkbox" name="hobbies" class="hobby-3"> movie
+    <input type="checkbox" name="hobbies" class="hobby-4"> games <br>
+    <input type="submit">
+</form>
+</body>
+</html>
+```
+
+> 入面有username，pwd，幾個checkbox；Servlet如下
+
+```java
+package com.test.servlet;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Arrays;
+
+public class LoginServlet extends HttpServlet {
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        String username = req.getParameter("username"); // 接收name="username"嘅參數
+        String password = req.getParameter("password"); // 接收name="password"嘅參數
+        String[] hobbies = req.getParameterValues("hobbies");  // hobbies checkbox有好多個，所以用呢個String array收
+
+        System.out.println(username); // console output result
+        System.out.println(password);
+        System.out.println(Arrays.toString(hobbies));
+
+        // dispatch，留意dispatch唔寫context name，直接寫地址，因為係內部轉發
+        req.getRequestDispatcher("/ok.jsp").forward(req,resp); 
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        doGet(req, resp);
+    }
+}
+```
+
+
+
+# 6. Cookies and Session
+
+**分別**
+
+| Cookies                                                      | Session                                                    |
+| ------------------------------------------------------------ | ---------------------------------------------------------- |
+| 保存在客戶端                                                 | 保存在server                                               |
+| 儲存量有限                                                   | 儲存量無限                                                 |
+| 取決於服務器發送的cookie過期時間，可以手動設置，通常近乎於不會消失 | 在用戶關閉瀏覽器後立即刪除，不刷新頁面的話，大約半小時刪除 |
+| 大小限制為4kb                                                | 沒有大小限制                                               |
+
+## 6.1 Cookie
+
+> 以下例子模擬發送及接受cookie，每次發送一個系統當前時間
+
+```java
+package com.test.servlet;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Date;
+
+public class CookiesDemo01 extends HttpServlet {
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        req.setCharacterEncoding("utf-8");
+        resp.setCharacterEncoding("utf-8");
+
+        PrintWriter out = resp.getWriter();
+        Cookie[] cookies = req.getCookies(); // get cookie array
+        if(cookies != null){ // 如果佢有cookies
+            boolean hasCookie = false;
+            for(int i = 0; i < cookies.length; i++){
+                Cookie cookie = cookies[i];
+                if(cookie.getName().equals("lastLoginTime")){ //而其中一個係我send嘅 (lastLoginTime)
+                    hasCookie = true;
+                    long lastLoginTime = Long.parseLong(cookie.getValue()); // 用long獲取
+                    Date date = new Date(lastLoginTime); // 轉為日期
+                    out.write("Your last login time is: " + date.toString()); // sd response
+                }
+            }
+            if(hasCookie == false) { // 無cookies，第一次進入本站
+                out.write("Nice to meet you! Hope to see u again");
+            }
+        }
+
+        // 無論第一次進入本站與否，重新sd一個時間嘅cookie，用以新建/刷新上次登入時間
+        Cookie cookie = new Cookie("lastLoginTime", System.currentTimeMillis() + "");
+        resp.addCookie(cookie); // 發送cookie
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        doGet(req, resp);
+    }
+}
+```
+
+### 6.1.1 細節
+
+- 一個cookie只能保存一個信息
+- 一個domain只能保存最多20個cookies
+- 一個cookie大小限制為4kb
+- 整個瀏覽器cookies上限為300
+- 若不設置cookie.setMaxAge() (cookie有效時間)，關閉網站後cookie自動刪除 
+
+## 6.2 中文顯示亂碼問題
+
+> 如果cookie value 設置為中文，係瀏覽器output時可能遇到亂碼問題
+>
+> 可以係send cookie時先將中文字encode，接收時再decode，如下
+
+```java
+URLEncoder.encode("我是中文字","UTF-8");
+URLDecoder.decode(cookie.getvalue(),"UTF-8")
+```
+
