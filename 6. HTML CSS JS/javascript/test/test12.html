@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <!-- 留意要先導入加密算法嘅url -->
+    <script src="http://www.myersdaily.org/joseph/javascript/md5.js"></script>
+</head>
+<body>
+    <form action="#" method="psot" onsubmit="return test()">
+        <p>
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username">
+        </p>
+        <p>
+            <label for="in_password">Password:</label>
+            <input type="password" id="in_password">   <!-- 假pwd，俾user input-->
+        </p>
+
+        <input type="hidden" id="md5_pwd" name="password"> <!-- 真pwd，接收user pwd後加密製成-->
+
+        <button type="submit">submit</button>
+    </form>
+
+    <script>
+        function test(){
+            let password = document.getElementById("in_password");
+            let md5pwd = document.getElementById("md5_pwd");
+
+            md5pwd.value = md5(password.value);  // 加密
+            return true;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+    <div id="div1"></div>
+
+    <script>
+        let div1 = document.getElementById("div1");
+        let p = document.createElement('p');   // 創建一個 p ，等同於 <p></p>
+        p.id = "p1";  // <p id="p1"></p>
+        p.innerText = "pppppp"; // // <p id="p1">pppppp</p>
+
+        div1.append(p);  // 加到div中
+    </script>
+</body>
+</html>

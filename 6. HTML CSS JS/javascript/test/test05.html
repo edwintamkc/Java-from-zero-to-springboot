@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script>
+        'use strict'
+        class Student{
+            constructor(name) {
+                this.name = name;
+            }
+
+            hello(){
+                console.log("hello! I am " + this.name);
+            }
+        }
+
+        class Undergrad extends Student{
+            constructor(name, age) {
+                super(name);
+                this.age = age;
+            }
+
+            myAge(){
+                console.log("I am " + this.name + ". My age is " + this.age);
+            }
+        }
+
+        let Tom = new Student("Tom");
+        let Jerry = new Undergrad("Jerry", 20);
+        Tom.hello();
+        Jerry.myAge();
+
+
+
+    </script>
+</head>
+<body>
+
+</body>
+</html>

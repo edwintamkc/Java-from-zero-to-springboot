@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <div id="div1">
+        <p id="p1">p1</p>
+        <p class="p2">p2</p>
+    </div>
+    <script>
+        let  div1 = document.getElementById("div1");   // 先獲取 father
+        div1.removeChild(document.getElementById("p1"));  // 再用father delete自己，傳入自己
+        div1.removeChild(document.getElementsByClassName("p2")[0]);
+        // 留意如果 p1 係class，就要用getElementsByClassName，傳入嘅係 array，所以要俾index
+    </script>
+</body>
+</html>

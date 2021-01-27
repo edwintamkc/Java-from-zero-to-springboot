@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script>
+        var user = {
+            name : "Tom",
+            age : 20,
+            sex : 'm'
+        }
+
+        // output 原本嘅object
+        console.log(user);
+
+        // 將object 轉為JSON string
+        var jsonString = JSON.stringify(user);
+        console.log(jsonString);
+
+        // 將JSON string 轉為object
+        var jsonObject = JSON.parse(jsonString);
+        console.log(jsonObject);
+    </script>
+</head>
+<body>
+
+</body>
+</html>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <form action="#" method="psot">
+        <p>
+            <label for="username">Username:</label>
+            <input type="text" id="username">
+        </p>
+        <p>
+            <span>Sex:</span>
+            <input type="radio" name="sex" value="male" id="male_btn">Male
+            <input type="radio" name="sex" value="female" id="female_btn">Female
+        </p>
+
+    </form>
+
+    <script>
+        let username = document.getElementById("username");
+        //username.value;    得到username value
+        username.value = "aasdfasdf";  // 修改username value
+
+        let male_btn = document.getElementById("male_btn");
+        let female_btn = document.getElementById("female_btn");
+        //male_btn.checked;    查看結果，如果被選中顯示 true，否則false
+        male_btn.checked = true; // 修改為被選中
+
+    </script>
+</body>
+</html>

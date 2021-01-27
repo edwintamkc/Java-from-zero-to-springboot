@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script>
+        var person = {
+            name : "Person",
+            run : function(){
+                console.log(this.name + " is running...");
+            }
+        }
+
+        var Tom = {
+            name : "Tom"
+        }
+
+        Tom.__proto__ = person;
+        console.log(Tom.run());
+
+
+
+    </script>
+</head>
+<body>
+
+</body>
+</html>

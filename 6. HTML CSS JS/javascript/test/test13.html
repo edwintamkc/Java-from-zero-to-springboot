@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+<body>
+    <a href="#" id="button">click</a>
+
+    <script>
+        let id = document.getElementById("button");
+        // id.......
+        // 之前嘅做法係，先獲取 node，再做operation
+        // 宜家有jQuery就方便好多
+        $("#button").click(function(){
+            alert("hello");
+        })
+
+
+    </script>
+</body>
+</html>

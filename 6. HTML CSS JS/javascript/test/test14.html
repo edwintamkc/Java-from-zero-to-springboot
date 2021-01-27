@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+    <style>
+        #div1 {
+            border: 1px solid red;
+            height: 700px;
+            width: 500px;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+<body>
+    <span id="text"></span>
+    <div id="div1">move your mouse here</div>
+
+    <script>
+        $(function(){
+            $("#div").mousemove(function(e){
+                $("#text").text("mouse coordinate: x-" + e.pageX + "  y-" + e.pageY);
+            })
+        })
+    </script>
+</body>
+</html>
