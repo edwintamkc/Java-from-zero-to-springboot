@@ -188,5 +188,161 @@ DROP TABLE IF EXISTS name						-- 刪除table
 
 
 
-3. MySQL 數據管理
+# 3. MySQL 數據管理
+
+## 3.1 foreign key
+
+> 分為 創表時加入FK，及之後增加FK
+
+1. `創表時加入FK`
+
+```sql
+CREATE TABLE IF NOT EXISTS `grade`(
+	`gradeid` INT(5) NOT NULL AUTO_INCREMENT COMMENT 'Student grade id',
+	`gradename` VARCHAR(50) NOT NULL COMMENT 'Student grade name',
+	PRIMARY KEY(`gradeid`)
+)ENGINE=INNODB DEFAULT CHARSET=utf8
+
+
+-- student table嘅 `gradeid` 要引用 grade table 嘅 gradeid
+-- 1. 定義 foreign key
+-- 2. 加constraint `FK_XXXX` (引用)
+CREATE TABLE IF NOT EXISTS `student` (
+	`id`  INT(4) NOT NULL AUTO_INCREMENT COMMENT 'Student id',
+	`name` VARCHAR(30) NOT NULL DEFAULT 'null' COMMENT 'Student name',
+	`pwd` VARCHAR(30) NOT NULL DEFAULT '123456' COMMENT 'Student password',
+	`sex` VARCHAR(10) NOT NULL DEFAULT 'Female' COMMENT 'Student sex',
+	`birthday` DATETIME DEFAULT NULL COMMENT 'Student birthday',
+	`address` VARCHAR(100) DEFAULT NULL COMMENT 'Student address',
+	`email` VARCHAR(50) DEFAULT NULL COMMENT 'Student email',
+	`gradeid` INT(5) NOT NULL COMMENT 'Student grade id',
+	KEY `FK_gradeid`(`gradeid`),
+	CONSTRAINT `FK_gradeid` FOREIGN KEY (`gradeid`) REFERENCES `grade` (`gradeid`),
+    PRIMARY KEY(`id`)  -- main key，一個table只有一個，通常係 id
+
+)ENGINE =INNODB DEFAULT CHARSET=utf8
+```
+
+上面例子，`student` table 需要 引用 `grade` table中的 `gradeid`
+
+留意第 19- 21行，首先加入gradeid 呢個key，再用 KEY FK_XXX 加foreign key，最後第21行 加入reference
+
+
+
+2. `之後增加FK`
+
+就係用翻 alter 加
+
+```sql
+ALTER TABLE `student`
+ADD CONSTRAINT `FK_gradeid` FOREIGN KEY (`gradeid`) REFERENCES `grade` (`gradeid`)
+```
+
+> 呢個方法好少用，因為
+>
+> 1. 唔方便
+> 2. 唔可以直接刪除`grade` 呢個table，因為有其他table 引用緊
+> 3. 當table多果陣，出現多個foreign key，DB會好亂
+>
+> **最好嘅方法係 用program去實現** 
+
+
+
+## 3.2 DML language (重要)
+
+> dabase manipulate language 
+>
+> - insert
+> - update
+> - delete
+
+
+
+1. `insert`
+
+   >INSERT INTO **table name (col)** VALUES**('data')**
+
+   ```sql
+   -- 增加一個data
+   INSERT INTO `grade` (`gradename`) values ('year 4') 
+   
+   -- 增加多個data，留意每組data需要用括號包住，逗號隔開
+   INSERT INTO `grade` (`gradename`)
+   values ('year 1'), ('year 2'), ('year 3')
+   
+   -- 同時向多個col增加data
+   -- 同樣用括號，逗號分隔
+   INSERT INTO `student` (`name`,`pwd`,`sex`)
+   VALUES ('Tom', 'abcdefg', 'Male'), ('Jerry', 'aaaah!', 'Male')
+   ```
+
+
+
+2. `update`
+
+   > UPDATE **table name** SET **col = 'data'** WHERE **xx = xx**
+
+   ```sql
+   -- 修改 `student` table 下 `name` 為 'noname'，條件為 id = 2
+   UPDATE `student` SET `name`='noname' WHERE id = 2
+   
+   -- 唔寫條件嘅話，會將所有 `name` 都改做 'noname' !!!!!   
+   UPDATE `student` SET `name`='noname'
+   
+   -- 修改多個col，用逗號隔開
+   UPDATE `student` SET `name`='noname', `email`='asdfas@aws.com' WHERE id = 1
+   ```
+
+
+
+​			**where 常用操作**
+
+​			
+
+| 操作            | 意義             | 例子                     |
+| --------------- | ---------------- | ------------------------ |
+| =               | 等於             | id = 2                   |
+| <>/ !=          | 不等於           | id != 2                  |
+| >               | 大於             | id > 2                   |
+| <               | 小於             | id < 2                   |
+| >=              |                  |                          |
+| <=              |                  |                          |
+| BETWEEN A AND B | A與B之間   [A,B] | WHERE id between 2 and 5 |
+| AND             | 和               |                          |
+| OR              | 或               |                          |
+
+
+
+3. `delete`
+
+   >DELETE FROM **table name** WHERE **xx = xx**
+
+   ```sql
+   -- 刪除 `student` table 中 id = 1嘅row
+   DELETE FROM `student` WHERE id = 1
+   ```
+
+   
+
+   `truncate` 
+
+   > TRUNCATE TABLE table name
+
+   ```sql
+   -- 刪除table 並且重置primary key
+   TRUNCATE TABLE `student`
+   ```
+
+   
+
+## 3.3 DQL language (最重要)
+
+> database query language
+>
+> - 所有查詢都用呢個
+> - 最常用
+
+```sql
+
+```
 
