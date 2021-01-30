@@ -342,7 +342,126 @@ ADD CONSTRAINT `FK_gradeid` FOREIGN KEY (`gradeid`) REFERENCES `grade` (`gradeid
 > - 所有查詢都用呢個
 > - 最常用
 
-```sql
+> 基礎
 
+```sql
+-- 查詢student table下所有數據 (*代表全部)
+SELECT * FROM student
+
+-- 查詢student table下指定 col 的數據
+SELECT `studentno`, `studentname` FROM student
+
+-- 改名 (只限顯示)，查詢之餘顯示其他名，方便閱讀
+SELECT `studentno` AS 學號, `studentname` AS 名字 FROM student 
+
+-- function CONCAT(a,b)，將兩項連接並顯示
+SELECT CONCAT('姓名: ', studentname) AS 'all name' FROM student
 ```
 
+如果row name未能準確表達意思，可以用第三個，select as，改名，方便閱讀
+
+
+
+> distinct，查詢不重複的資料
+
+```sql
+SELECT DISTINCT `studentno` FROM student
+```
+
+
+
+### 3.3.1 模糊查詢
+
+| operant     | meaning           | description                                         |
+| ----------- | ----------------- | --------------------------------------------------- |
+| IS NULL     | A is null         |                                                     |
+| IS NOT NULL | A is not null     |                                                     |
+| BETWEEN     | A between B and C | A在B及C之間                                         |
+| `LIKE`      | A like B          | A 與 B **相似**，例如 C++，search ‘++’ 都可以       |
+| `IN`        | A in {B,C,D,E}    | A在數列其中一個都可以，一定要係**具體值，完全一樣** |
+
+```sql
+-- % 代表任意數項字符， _ 代表一個字符
+-- 選擇名為劉xxx (幾多個字都得) 的同學
+SELECT `studentname` FROM student 
+WHERE studentname LIKE '劉%'
+
+-- 選擇名為劉X (只有一個字) 的同學
+-- 如果選擇劉XX (兩個字)，則用 '劉__'  (兩個下劃線)
+SELECT `studentname` FROM student
+WHERE studentname LIKE '劉_'
+
+-- 選擇名字中間有 家 字的同學
+SELECT `studentname` FROM student
+WHERE studentname LIKE '%家%'
+
+-- 查詢studentno 為 1001,1002,1003 的同學
+SELECT `studentname` FROM student
+WHERE `studentno` IN (1001,1002,1003)
+```
+
+
+
+### 3.3.2 joins
+
+![image-20210130230148658](notes.assets/image-20210130230148658.png)
+
+| types of join | description                                                  |
+| ------------- | ------------------------------------------------------------ |
+| inner join    | 只要其中一個table存在該數據就ok                              |
+| left join     | 以左表為主表，必定包含左表所有數據，即使右表有部分數據在左表不存在 |
+| right join    | 以右表為主表，必定包含右表所有數據，即使左表有部分數據在右表不存在 |
+
+**left join 例子，如果左表有個 student id = 2000，但係右表無，join完都會顯示student id = 2000果個人，因為係以左表為主表，right join同理**
+
+```sql
+/*
+  1. 選擇所有所需嘅資料
+  2. 決定用邊個join 
+  3. 條件
+*/
+
+/*
+  背景: 需要result table及student table嘅
+  studentName, studentno, subjectno, studentresult 資料
+  其中後三個result table有，而studentName得student table有
+  呢兩個table入面，studentno 呢個key係一樣
+  所以可以用呢個作連接
+*/
+
+-- 1. inner join (兩邊都要有)
+SELECT s.`studentno`, `studentname`, `subjectno`,`studentresult`
+FROM student s       -- 後面果個係reference，代表一個table
+INNER JOIN result r
+ON s.`studentno` = r.`studentno`
+
+-- 2. left join (左邊為主表)
+SELECT s.`studentno`, `studentname`, `subjectno`,`studentresult`
+FROM student s
+LEFT JOIN result r
+ON s.`studentno` = r.`studentno`
+```
+
+> 三表例子
+
+```sql
+/*
+  背景：需要result table，student table及subject table
+  三個table中的資料
+  student table: student number, student name
+  result table: student number, subject number, subject result
+  subject table: subject number, subject name
+  需求: student number, student name, subject name, subject result
+  可以見到，student table及result table可用 student number相連
+  而subject table及result table可用 subject number相連
+*/
+
+SELECT s.`studentno`,`studentname`,`studentresult`,`subjectname`
+FROM student s
+RIGHT JOIN result r
+ON s.`studentno`= r.`studentno`
+LEFT JOIN `subject` sub  -- 以上面已經join好嘅表為基礎，left join
+ON r.`subjectno` = sub.`subjectno`
+```
+
+![image-20210130232803484](notes.assets/image-20210130232803484.png)
