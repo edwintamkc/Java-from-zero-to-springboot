@@ -188,7 +188,7 @@ DROP TABLE IF EXISTS name						-- 刪除table
 
 
 
-# 3. MySQL 數據管理
+# 3. DML
 
 ## 3.1 foreign key
 
@@ -335,12 +335,26 @@ ADD CONSTRAINT `FK_gradeid` FOREIGN KEY (`gradeid`) REFERENCES `grade` (`gradeid
 
    
 
-## 3.3 DQL language (最重要)
+# 4. DQL language (最重要)
 
 > database query language
 >
 > - 所有查詢都用呢個
 > - 最常用
+
+`完整語法`
+
+```sql
+SELECT[ALL|DISTINCT|DISTINCTROW|TOP]
+{*|talbe.*|[table.]field1[AS alias1][,[table.]field2[AS alias2][,…]]}
+FROM tableexpression[,…][IN externaldatabase]
+[WHERE…]
+[GROUP BY…]
+[HAVING…]
+[ORDER BY…]
+[WITH OWNERACCESS OPTION]
+-- [] 可選，   {} 必選其中一個
+```
 
 > 基礎
 
@@ -370,7 +384,7 @@ SELECT DISTINCT `studentno` FROM student
 
 
 
-### 3.3.1 模糊查詢
+## 4.1 模糊查詢
 
 | operant     | meaning           | description                                         |
 | ----------- | ----------------- | --------------------------------------------------- |
@@ -402,7 +416,9 @@ WHERE `studentno` IN (1001,1002,1003)
 
 
 
-### 3.3.2 joins
+
+
+## 4.2 join
 
 ![image-20210130230148658](notes.assets/image-20210130230148658.png)
 
@@ -465,3 +481,135 @@ ON r.`subjectno` = sub.`subjectno`
 ```
 
 ![image-20210130232803484](notes.assets/image-20210130232803484.png)
+
+
+
+## 4.3 排序及分頁
+
+`排序 order by`
+
+```sql
+-- 排序 order by
+-- ORDER BY row name ASC/DESC
+SELECT s.`studentno`,`studentname`,`subjectname`,`studentresult`
+FROM student s
+INNER JOIN result r
+ON s.`studentno` = r.`studentno`
+INNER JOIN `subject` sub
+ON r.`subjectno` = sub.`subjectno`
+WHERE subjectname = 'Discrete maths-1'
+ORDER BY studentresult DESC   -- 排序
+```
+
+![image-20210131104450748](notes.assets/image-20210131104450748.png)
+
+`分頁 limit`
+
+```sql
+-- 分頁
+-- LIMIT A,B
+-- A 為跳過幾多個數據，based on primary key，B 為每頁顯示幾個數據
+-- 例如 LIMIT 0,5  就係不跳過，從第一個開始，顯示 1-5，共5個數據
+SELECT s.`studentno`,`studentname`,`subjectname`,`studentresult`
+FROM student s
+INNER JOIN result r
+ON s.`studentno` = r.`studentno`
+INNER JOIN `subject` sub
+ON r.`subjectno` = sub.`subjectno`
+WHERE subjectname = 'Discrete maths-1'
+ORDER BY studentresult DESC   -- 排序
+LIMIT 0,5		      -- 分頁
+```
+
+
+
+## 4.4 subqueries (子查詢)
+
+> 簡單而言就係用條件再篩選一次
+
+```sql
+/*
+   背景: 查詢 Database-1 所有分數 (studentno，subjectno，result)，descending
+*/
+-- 方法一: 用join方法
+SELECT `studentno`,`subjectno`,`studentresult`
+FROM `subject` sub
+INNER JOIN result r
+ON sub.`subjectno` = r.`subjectno`
+WHERE `subjectname` = 'Database-1'
+ORDER BY `studentresult` DESC
+
+-- 方法二: subquery (子查詢)
+SELECT `studentno`,`subjectno`,`studentresult`
+FROM `result`
+WHERE subjectno = (
+  SELECT subjectno FROM `subject`
+  WHERE subjectname = 'Database-1'
+)
+-- 留意會先執行括號內的sql
+```
+
+先搵出 subjectname = 'Database-1' 嘅 subjectno，再用呢個做條件
+
+
+
+
+
+# 5. function
+
+## 5.1 不太常用的常用function
+
+```sql
+-- maths
+SELECT ABS(-10) -- absolute value
+SELECT CEILING(0.4) -- = 1
+SELECT FLOOR(1.6) -- = 1
+SELECT RAND() -- 0~1
+SELECT SIGN(10) -- 負數return -1 ， 正數return 1
+
+-- string
+SELECT CHAR_LENGTH('aaaaa') -- 5
+SELECT CONCAT('a','b','c') -- abc （concatenate）
+SELECT LOWER('AAA') -- aaa
+SELECT UPPER('aaa') -- AAA
+SELECT INSTR('abcdafg', 'a') -- return index of 'a' (第一次出現嘅index)
+SELECT SUBSTR('abcdefg',1,3) -- [1,3] 截取sub string
+SELECT REVERSE('abcdefg') -- gfedcba
+
+-- date , time
+SELECT CURRENT_DATE() -- 獲取當前日期
+SELECT NOW() -- 獲取當前時間
+SELECT SYSDATE() -- 系統時間
+```
+
+
+
+
+
+## 5.2 非常常用的aggregate function (聚合函數)
+
+```sql
+-- 查詢表中有幾多個數據
+SELECT COUNT(`studentno`) FROM student  -- student總數，會忽略null
+SELECT COUNT(*) FROM student -- 不會忽略null
+
+-- 數學
+SELECT SUM(`studentresult`) FROM result
+SELECT AVG(`studentresult`) FROM result  -- average
+SELECT MAX(`studentresult`) FROM result
+SELECT MIN(`studentresult`) FROM result
+```
+
+`分組及過濾`
+
+```sql
+-- 查詢 'Database-1' 中 平均分，最高分，最低分
+SELECT subjectname, AVG(studentresult),MAX(studentresult),MIN(studentresult)
+FROM `result` r
+INNER JOIN `subject` sub
+ON r.`subjectno` = sub.`subjectno`
+GROUP BY r.subjectno -- 必須，通過xx數據分組
+HAVING AVG(studentresult) > 80 -- group by 嘅 條件，類似where
+```
+
+==留意用group by 就唔可以用where，而係用having==
