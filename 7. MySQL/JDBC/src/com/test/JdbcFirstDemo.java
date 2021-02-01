@@ -19,7 +19,7 @@ public class JdbcFirstDemo {
         // 4. 用connection object 攞SQL object
         // SQL object 係執行sql 嘅object，寫sql 就用呢個object
         Statement statement = connection.createStatement();
-        
+
 
         // 5. 用SQL object (statement) 去執行sql
         String sql = "SELECT * From users";

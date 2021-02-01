@@ -919,3 +919,40 @@ statement.execute(); // CRUD 都可以做
 statement.executeUpdate(); // 更新，插入，刪除；return受影響嘅行數
 ```
 
+
+
+## 9.3 sql inject
+
+![image-20210201182359157](notes.assets/image-20210201182359157.png)
+
+> 我地之前寫嘅嘢有漏洞，例如呢度只要user input 'or '1=1，呢個sql send過去之後，因為 1 = 1 永遠啱，咁佢就可以login 到
+
+
+
+呢個時候就要介紹 PreparedStatement object，同之前個 Statement object差唔多 (執行sql嘅objcet)，但係佢可以防止SQL inject
+
+詳情上網search
+
+
+
+
+
+# 10. db connection pool
+
+>成個處理數據嘅流程可以簡化為以下三步：
+>
+>數據庫連接 -> 執行 -> 釋放
+
+`但係從連接到釋放期間，會經常向系統/數據庫申請資源，造成損耗`
+
+`所以有connection pool呢個概念，預先準備好資源 (連接嘅管道)，當需要時就俾你，唔用就放翻入個池度 (留意不是向系統釋放，而係放入池中等待下一次使用)`
+
+
+
+常用connection pool：
+
+- DBCP
+- C3P0
+- Druid
+
+==用呢啲連接池就唔再需要自己寫連接數據庫嘅code==
