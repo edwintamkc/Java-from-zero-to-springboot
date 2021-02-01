@@ -613,3 +613,309 @@ HAVING AVG(studentresult) > 80 -- group by 嘅 條件，類似where
 ```
 
 ==留意用group by 就唔可以用where，而係用having==
+
+
+
+
+
+# 6. Transaction
+
+> `一係一齊發生，一係都唔發生`
+>
+> 有4個特點 (`ACID`):
+>
+> - atomicity 原子性 (最小嘅單位，`同一個`transaction中嘅operation一係全部一齊發生，一係全部都唔發生)
+>   - 銀行轉賬例子: A轉$200俾B，咁A減錢同B加錢要同時發生，唔可以得一個
+> - consistency 一致性 (transaction發生前後嘅數據`完整性`必須保持一致)
+>   - A同B在轉賬前，一共有$1000，轉賬完都要係1000
+> - isolation 隔離性 (多個用戶訪問DB時，DB為每一個用戶開transaction，並且每個transaction之間互相隔離，不被其他transaction干擾)
+>   - 假設B原本有500，A同C想`同時`轉$250俾B，如果無隔離，A同C嘅轉賬都係建基於B有500呢個基礎，所以兩個一齊轉最尾B都係得 750，但係實際上應該係1000
+> - durability 持久性 (transaction被提交後，對DB的改變係永久)
+>   - 假設轉賬呢個transaction提交之前，server死左，咁重啟之後DB嘅data應該係transaction提交之前嘅數據
+
+
+
+## 6.1 流程
+
+```sql
+-- 留意mysql 默認 開啟自動提交transaction，所以之前嘅操作都係一run就得
+-- SET autocommit = 1    默認 = 1
+-- 所以每個transaction，我地都要關閉佢先，完左之後再開翻
+
+-- 1. 關閉 autocommit
+SET autocommit = 0
+
+-- 2. 開啟 transaction
+START TRANSACTION
+
+-- 3. 處理 transaction
+insert xxxxx
+insert xxxxx
+
+-- 4. 提交 (成功嘅話)
+COMMIT
+
+-- 5. rollback (失敗嘅話，通常rollback翻去checkpoint，好似打機咁)
+ROLLBACK
+
+-- 6. 開啟 autocommit (如果成功)
+SET autocommit = 1
+```
+
+![image-20210201101645089](notes.assets/image-20210201101645089.png)
+
+## 6.2 例子
+
+```sql
+-- create db
+CREATE DATABASE `shop` CHARACTER SET utf8 COLLATE utf8_general_ci
+USE shop
+
+-- create table
+CREATE TABLE IF NOT EXISTS `account`(
+  `id` INT(10) NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(30) NOT NULL,
+  `money` DECIMAL(9,2) NOT NULL, -- 9位整數，2位小數
+  PRIMARY KEY (`id`)
+)ENGINE = INNODB DEFAULT CHARSET = utf8
+
+-- insert data into table
+INSERT INTO `account` (`name`, `money`)
+VALUES ('A',2000.00),('B',10000.00)
+
+-- transaction
+SET autocommit = 0;
+START TRANSACTION
+UPDATE account SET money = money -500 WHERE `name` = 'A' -- A 減 $500
+UPDATE account SET money = money + 500 WHERE `name` = 'B' -- B 加 500
+
+COMMIT;   -- 提交,提交後rollback無效
+ROLLBACK; -- rollback默認返回transaction開啟前狀態
+
+SET autocommit = 1;
+```
+
+
+
+
+
+# 7. index 
+
+> 面試常問，須了解底層
+>
+> https://blog.codinglabs.org/articles/theory-of-mysql-index.html
+
+- primary key
+  - 唯一，不可重複
+- unique key
+  - 如果某個col係unique key，咁就唔可以再出現同名嘅 col
+- key / index
+  - 默認
+- fulltext
+  - 快速定位數據
+
+
+
+例子
+
+```sql
+-- index的使用
+-- 1. create table果陣加index
+-- 2， 之後加
+
+-- 顯示所有index信息
+SHOW INDEX FROM student
+
+-- 加index，最尾兩個係   `index name` (`rol name`)
+ALTER TABLE school.student ADD FULLTEXT INDEX `studentname` (`studentname`)
+```
+
+![image-20210201150703460](notes.assets/image-20210201150703460.png)
+
+![image-20210201150713503](notes.assets/image-20210201150713503.png)
+
+> 第一幅圖為未加index前，如果要搵一個數據，會traverse the whole table，所以慢
+>
+> 第二幅圖為加index後，第一個就搵到，原理睇翻blog (B tree)
+
+
+
+## 7.1 原則
+
+- index 唔係越多越好
+- table內有好多數據先需要加，一般嚟講係百萬級先加
+
+
+
+
+
+# 8. 數據庫backup
+
+`導出`
+
+- 直接copy數據庫文件夾
+
+- 在GUI 選擇手動導出
+
+- shell script : mysqldump
+
+  ```shell
+  # -h = host, -u = user, -p = password  DB      table > directory/file
+  mysqldump -hlocalhost -uroot -p123456 school student > D:/abc   # 導出單表
+  
+  mysqldump -hlocalhost -uroot -p123456 school student result > D:/abc   # 導出多表
+  
+  mysqldump -hlocalhost -uroot -p123456 school> D:/abc   # 導出整個database
+  ```
+
+  
+
+`導入`
+
+- 都可以copy文件夾到目錄，或者 GUI 選擇導入
+
+- shell script: source
+
+  ```shell
+  # 首先登入mysql先
+  mysql -uroot -p123456
+  use school				# 轉去所需要的嘅db
+  source D:/abc			# 用source 導入
+  
+  # 唔登入都得(其實都係登入==不過變做一行)
+  mysql -uroot -p123456 school < D:/abc   # 同導出差唔多，箭咀轉左左右
+  ```
+
+  
+
+
+
+# 9. Java database connectivity (重點)
+
+![image-20210201154607718](notes.assets/image-20210201154607718.png)
+
+> 需要幾個 library
+>
+> - java.sql
+> - javax.sql
+> - mysql-connector-java-版本號.jar
+
+
+
+## 9.1 第一個JDBC program
+
+> 1. 創建測試數據庫
+
+```sql
+CREATE DATABASE jdbcStudy CHARACTER SET utf8 COLLATE utf8_general_ci;
+
+USE jdbcStudy;
+
+CREATE TABLE `users`(
+	id INT PRIMARY KEY,
+	NAME VARCHAR(40),
+	PASSWORD VARCHAR(40),
+	email VARCHAR(60),
+	birthday DATE
+);
+
+INSERT INTO `users`(id,NAME,PASSWORD,email,birthday)
+VALUES(1,'zhansan','123456','zs@sina.com','1980-12-04'),
+(2,'lisi','123456','lisi@sina.com','1981-12-04'),
+(3,'wangwu','123456','wangwu@sina.com','1979-12-04')
+```
+
+> 2. 創建一個project，並且導入 jar file
+
+![image-20210201155911501](notes.assets/image-20210201155911501.png)
+
+`先創建一個lib file，將jar包拖入去`
+
+![image-20210201160343275](notes.assets/image-20210201160343275.png)
+
+`右鍵，add as library`
+
+> 3. 寫program
+>
+>    `留意步驟`
+
+```java
+package com.test;
+
+import java.sql.*;
+
+public class JdbcFirstDemo {
+    public static void main(String[] args) throws ClassNotFoundException, SQLException {
+        // 1. add driver
+        Class.forName("com.mysql.jdbc.Driver");  // 加載驅動
+
+        // 2. 寫好曬user info, url
+        String url = "jdbc:mysql://localhost:3306/jdbcstudy?useUnicode=true&characterEncoding=utf8&useSSL=true";
+        String username = "root";
+        String password = "123456";
+
+        // 3. 用username, pwd, url 連接 database
+        // 呢個return 一個 connection object，代表數據庫
+        Connection connection = DriverManager.getConnection(url,username,password);
+
+        // 4. 用connection object 攞SQL object
+        // SQL object 係執行sql 嘅object，寫sql 就用呢個object
+        Statement statement = connection.createStatement();
+
+        // 5. 用SQL object (statement) 去執行sql
+        String sql = "SELECT * From users";
+
+        ResultSet resultSet = statement.executeQuery(sql); // return 所有result
+
+        while(resultSet.next()){
+            System.out.println("id=" + resultSet.getObject("id"));  // 留意 getObject()一定要對應翻 col 名，否則搵唔到
+            System.out.println("name=" + resultSet.getObject("NAME"));
+            System.out.println("pwd=" + resultSet.getObject("PASSWORD"));
+            System.out.println("email=" + resultSet.getObject("email"));
+            System.out.println("birth=" + resultSet.getObject("birthday"));
+            System.out.println();
+        }
+    }
+}
+
+```
+
+![image-20210201162915854](notes.assets/image-20210201162915854.png)
+
+
+
+## 9.2 各個object解讀
+
+> DriverManager
+
+```java
+Class.forName("com.mysql.jdbc.Driver");  // 固定寫法，加載驅動
+```
+
+> URL
+
+```java
+String url = "jdbc:mysql://localhost:3306/jdbcstudy?useUnicode=true&characterEncoding=utf8&useSSL=true";
+
+//jdbc:mysql://地址:portno/數據庫名?參數1&參數2&參數3
+```
+
+> Connection，database嘅object
+
+```java
+// 先連接database
+Connection connection = DriverManager.getConnection(url,username,password);
+// 所有database操作都係呢度做，例如transaction，如下
+// connection.roolback();
+// connection.commit();
+// connection.setAutoCommit();
+```
+
+> Statement，執行sql 嘅object
+
+```java
+statement.executeQuery(); // 查詢，return resultSet
+statement.execute(); // CRUD 都可以做
+statement.executeUpdate(); // 更新，插入，刪除；return受影響嘅行數
+```
+
