@@ -964,6 +964,12 @@ Controller
 
 > 之前所有請求都直接send去servlet，導致好多冗餘工作嘅出現
 >
+> 例如用servlet解決亂碼時，寫法如下
+>
+> ![image-20210203174631150](notes.assets/image-20210203174631150.png)
+>
+> 如果有幾十個servlet，咁每個都要加呢個咪好煩？所以有filter嘅出現
+>
 > 我地可以係server同 servlet之間加一個filter，處理簡單請求，例如
 >
 > - 過濾垃圾請求
@@ -971,3 +977,121 @@ Controller
 
 
 
+步驟：
+
+1. **加dependency** (雖然有部分無用，但係都copy上嚟)
+
+   ```xml
+   <dependencies>
+       <!--Servlet dependency-->
+       <dependency>
+           <groupId>javax.servlet</groupId>
+           <artifactId>javax.servlet-api</artifactId>
+           <version>3.1.0</version>
+       </dependency>
+       <!--JSP dependency-->
+       <dependency>
+           <groupId>javax.servlet.jsp</groupId>
+           <artifactId>javax.servlet.jsp-api</artifactId>
+           <version>2.3.3</version>
+       </dependency>
+       <!--JSTL expression dependency-->
+       <dependency>
+           <groupId>javax.servlet.jsp.jstl</groupId>
+           <artifactId>jstl-api</artifactId>
+           <version>1.2</version>
+       </dependency>
+       <!--standard tag lib-->
+       <dependency>
+           <groupId>taglibs</groupId>
+           <artifactId>standard</artifactId>
+           <version>1.1.2</version>
+       </dependency>
+       <!--database-->
+       <dependency>
+           <groupId>mysql</groupId>
+           <artifactId>mysql-connector-java</artifactId>
+           <version>5.1.47</version>
+       </dependency>
+   </dependencies>
+   ```
+
+   
+
+2. **寫一個class implements Filter (留意係javax.servlet)**
+
+   ![image-20210203173731720](notes.assets/image-20210203173731720.png)
+
+3. **override method**
+
+   ```java
+   package com.test;
+   
+   import javax.servlet.*;
+   import java.io.IOException;
+   
+   public class CharacterEncodingFilter implements Filter {
+       // Server (Tomcat) 開啟前會自動初始化
+       @Override
+       public void init(FilterConfig filterConfig) throws ServletException {
+   
+       }
+   
+       @Override
+       public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
+           // 1. 將request, response, contenttype 亂碼問題解決
+           servletRequest.setCharacterEncoding("utf-8");
+           servletResponse.setCharacterEncoding("utf-8");
+           servletResponse.setContentType("text/html;charset=utf-8");
+   
+           // 2. 用filter chain將信號再傳出去
+           filterChain.doFilter(servletRequest,servletResponse);
+          
+       }
+   	// Server 關閉時會自動銷毀
+       @Override
+       public void destroy() {
+   
+       }
+   }
+   ```
+
+   > 呢度嘅chain係指所有filter嘅chain
+   >
+   > 當request過嚟果陣，每個filter負責做一樣嘢，再講requst send去下個filter，直至所有filter都做完後，會send去 servlet做service
+   >
+   > `所以一定要用filterChain send出去`
+
+4. **寫xml 映射** 
+
+   呢度我嘅ShowServlet會向browser output一句 "你好"，具體program如下
+
+   ![image-20210203180457709](notes.assets/image-20210203180457709.png)
+
+   ```xml
+   <servlet>
+       <servlet-name>ShowServlet</servlet-name>
+       <servlet-class>com.test.ShowServlet</servlet-class>
+   </servlet>
+   <servlet-mapping>
+       <servlet-name>ShowServlet</servlet-name>
+       <url-pattern>/showServlet</url-pattern>
+   </servlet-mapping>
+   
+   <filter>
+       <filter-name>utf-8_filter</filter-name>
+       <filter-class>com.test.CharacterEncodingFilter</filter-class>
+   </filter>
+   <filter-mapping>
+       <filter-name>utf-8_filter</filter-name>
+       <url-pattern>/test/*</url-pattern>  <!--選擇將/test 文件夾下所有java file過濾-->
+   </filter-mapping>
+   ```
+
+5. **成功！**
+
+   `圖1為未加filter前(未解決中文亂碼問題前)，圖2為加filter後`
+
+   ![image-20210203180653740](notes.assets/image-20210203180653740.png)
+
+   ![image-20210203180539308](notes.assets/image-20210203180539308.png)

@@ -790,7 +790,11 @@ ALTER TABLE school.student ADD FULLTEXT INDEX `studentname` (`studentname`)
 
 
 
-# 9. Java database connectivity (重點)
+# 9. JDBC (重點)
+
+`JDBC = java database connectivity`
+
+以前用唔同嘅 sql，係application需要寫唔同嘅API去調用，而呢啲function多又雜，每個sql都可能有唔同嘅實現方法，好難記。所以SUN 公司整左個JDBC，用嚟規範所有sql (所有sql需要實現JDBC嘅接口)，而我地programmer只需要知道點係application寫JDBC code就得~
 
 ![image-20210201154607718](notes.assets/image-20210201154607718.png)
 
@@ -881,6 +885,15 @@ public class JdbcFirstDemo {
 ```
 
 ![image-20210201162915854](notes.assets/image-20210201162915854.png)
+
+步驟總結：
+
+1. 加driver
+2. 連接database
+3. 創建 Statement object，用嚟send statement
+4. 寫SQL
+5. 用statement執行SQL
+6. 關閉連接
 
 
 
