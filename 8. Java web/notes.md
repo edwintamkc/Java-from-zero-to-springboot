@@ -841,7 +841,7 @@ for (int i = 0; i < 5; i++) {
 
 `JSTL tag`
 
-係一個JSP tag嘅集合，封裝左JSP嘅核心功能。佢嘅出現就係彌補HTML tag嘅不足
+JSTL嘅出現就係彌補jsp tag不足嘅問題。佢自定義左好多tag 俾我地用
 
 - **核心標籤**
 
