@@ -14,7 +14,7 @@
 
   **stack: Servlet/JSP, ASP, PHP**
 
-# 2. web server
+# 2. Web server
 
 ## 2.1 3種languages
 
@@ -874,6 +874,100 @@ for (int i = 0; i < 5; i++) {
 - 獲取常用object
 
 
+
+# 8. JavaBean
+
+Javabean 係一個` pojo (plain ordinary java object)`，佢嘅`class有特定嘅寫法`
+
+- 必須有一個constructor
+- filed 必須private
+- 每個field 都要有對應嘅get/set method
+
+一般用嚟同數據庫嘅field做映射   `ORM(object relational mapping)`
+
+ORM：
+
+- 數據庫嘅table  ->  Java class (javabean)
+- 數據庫嘅field   ->  Java class入面嘅 field
+- 數據庫嘅 row   ->  Java 嘅object
+
+`例如數據庫有個 people table`
+
+| id   | name     | age  |
+| ---- | -------- | ---- |
+| 1    | Tom      | 20   |
+| 2    | Jerry    | 20   |
+| 3    | Doraemon | 100  |
+
+`所對應嘅java class就係`
+
+```java
+class People{
+    private int id;
+    private String name;
+    private int age;
+    
+    public People(){
+        
+    }
+    
+    public People(int id, String name, int age){
+        this.id = id;
+        this.name = name;
+        this.age = age;
+    }
+    
+    // getter, setter .....
+}
+
+new People(1, "Tom", 20);   // 對應翻DB入面嘅row，每個row就係一個java object
+```
+
+
+
+# 9. MVC 三層架構
+
+> MVC: Model View Controller
+
+## 9.1 intro
+
+![image-20210203125412685](notes.assets/image-20210203125412685.png)
+
+![image-20210203125430918](notes.assets/image-20210203125430918.png)
+
+> user睇到嘅係 view (視圖層)，入面展示數據，提供操作入口
+>
+> 當佢使用各種操作果陣，就會send 去controller (控制層)，controller再交俾 model (數據層)做
+>
+> 而model就係做各種operation嘅layer
+
+Model
+
+- 處理各種operation
+- CRUD (`dao(data access object)`)
+
+View
+
+- 展示數據
+- 提供操作入口 (<a> <img> <form>...)
+
+Controller
+
+- 接收用戶request (req, session data)
+- send去model 處理
+
+
+
+# 10. Filter
+
+![image-20210203141227898](notes.assets/image-20210203141227898.png)
+
+> 之前所有請求都直接send去servlet，導致好多冗餘工作嘅出現
+>
+> 我地可以係server同 servlet之間加一個filter，處理簡單請求，例如
+>
+> - 過濾垃圾請求
+> - 解決亂碼問題
 
 
 
