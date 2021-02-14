@@ -16,11 +16,11 @@ public class UserDaoTest {
         SqlSession sqlSession = MybatisUtils.getSession();
 
         UserMapper mapper = sqlSession.getMapper(UserMapper.class);
-        List<User> userList = mapper.getUserList();
+        User user = mapper.getUserById(1);
 
-        for(User user : userList){
-            System.out.println(user);
-        }
+
+        System.out.println(user);
+
         sqlSession.close();
     }
 }

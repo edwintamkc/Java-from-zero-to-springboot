@@ -295,19 +295,21 @@ public class MybatisUtils {
 
 
 
-## 2.4 test
+`4. 係mybatis-config.xml入面加翻mapper`
 
-`junit test:`
-
-> 要係pom.xml 入面加mapper映射先：
+> `留意每個mapper都要寫一個映射`
 >
 > ```xml
 > <mappers>
->     <mapper resource="com/test/dao/UserMapper.xml"/>
+>  <mapper resource="com/test/dao/UserMapper.xml"/>
 > </mappers>
 > ```
 
 ![image-20210214132347749](notes.assets/image-20210214132347749.png)
+
+## 2.4 test
+
+`junit test:`
 
 ```java
 public class UserDaoTest {
@@ -337,7 +339,7 @@ public class UserDaoTest {
 > 4. utility (sqlSessionFactoryBuilder -> sqlSessionFactory -> sqlSession)
 > 5. pojo
 > 6. mapper
->    - 自己寫mapper，並且要係mybatis-config.xml 加一個mapper
+>    - 自己寫mapper，並且要係mybatis-config.xml 加一個mapper映射
 > 7. mapper method implementation (xml or annotation)
 > 8. test
 
@@ -640,3 +642,71 @@ public void test6(){
 ![image-20210214161845649](notes.assets/image-20210214161845649.png)
 
 > 常用嘅就呢幾個
+
+
+
+## 5.6 mappers
+
+> 有三種常用方式寫mapper
+
+`1. resource (映射xml file)`
+
+```xml
+<mappers>
+  <mapper resource="org/mybatis/builder/AuthorMapper.xml"/>
+  <mapper resource="org/mybatis/builder/BlogMapper.xml"/>
+  <mapper resource="org/mybatis/builder/PostMapper.xml"/>
+</mappers>
+```
+
+`2. class (映射java file : interface等等)`
+
+```xml
+<mappers>
+  <mapper class="org.mybatis.builder.AuthorMapper"/>
+  <mapper class="org.mybatis.builder.BlogMapper"/>
+  <mapper class="org.mybatis.builder.PostMapper"/>
+</mappers>
+```
+
+`3. package (自動搜尋package下所有文件)`
+
+```xml
+<mappers>
+  <package name="org.mybatis.builder"/>
+</mappers>
+```
+
+> 留意第二種，第三種有要求：java file, xml file嘅名必須一樣，例如 有個java file叫UserMapper，咁佢嘅configuration file一定要叫UserMapper.xml
+
+
+
+# 6. resultmap
+
+> 之前寫嘅pojo入面所有field name 都同database入面嘅field name一樣，如下圖
+
+![image-20210214203100945](notes.assets/image-20210214203100945.png)
+
+因為如果兩邊嘅field name唔一樣，係database 入面就搵唔到相應嘅column
+
+例如將 User.java 入面 private String pwd; 改成 private String password; pwd (database col) 呢個output果陣就會出現null嘅情況
+
+**解決方法：係UserMapper.xml寫一個resultmap 描述兩者之間嘅關係，令佢可以知道 User. java入面嘅 password = database user table嘅 pwd**
+
+```xml
+<resultMap id="UserMap" type="User">
+	<!--id，name 兩邊一樣，不需要映射-->
+    <result column="pwd" property="password"/>
+</resultMap>
+
+<select id="getUserById" resultMap="UserMap">
+	select * from mybatis.user where id=#{id};
+</select>
+```
+
+> 留意：係將 database table column 映射至 java field
+>
+> 官網介紹：https://mybatis.org/mybatis-3/zh/sqlmap-xml.html#Result_Maps
+
+
+

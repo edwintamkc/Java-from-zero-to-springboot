@@ -3,7 +3,7 @@ package com.test.pojo;
 public class User {
     private int id;
     private String name;
-    private String pwd;
+    private String password;
 
     public User() {
     }
@@ -11,7 +11,7 @@ public class User {
     public User(int id, String name, String pwd) {
         this.id = id;
         this.name = name;
-        this.pwd = pwd;
+        this.password = password;
     }
 
     public int getId() {
@@ -31,11 +31,11 @@ public class User {
     }
 
     public String getPwd() {
-        return pwd;
+        return password;
     }
 
-    public void setPwd(String pwd) {
-        this.pwd = pwd;
+    public void setPwd(String password) {
+        this.password = password;
     }
 
     @Override
@@ -43,7 +43,7 @@ public class User {
         return "User{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
-                ", pwd='" + pwd + '\'' +
+                ", pwd='" + password + '\'' +
                 '}';
     }
 }
