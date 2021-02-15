@@ -56,7 +56,7 @@
 
 ## 2.1 database
 
-`databse`
+`database`
 
 ```sql
 CREATE DATABASE IF NOT EXISTS `mybatis`;
@@ -94,7 +94,7 @@ INSERT INTO `user` VALUES
 >
 > - mysql
 > - mybatis
-> - junit
+> - junit (測試用)
 
 ```xml
 <dependencies>
@@ -252,7 +252,7 @@ public class MybatisUtils {
 
 ## 2.3 開始寫code
 
-> 我地需要一個pojo 去對應 database入面每一個table，然後係dao layer控制呢個pojo，因此步驟如下
+> 我地需要一個pojo 去對應 database入面每一個table，然後係dao (mapper) layer控制呢個pojo，因此步驟如下
 >
 > 1. 根據database入面嘅table寫對應嘅 plain ordinary java object，提供 getter setter constructor 等等
 > 2. 整一個mapper (其實就係dao，data access object，不過係mybatis改名為mapper) layer
@@ -371,13 +371,13 @@ public class UserDaoTest {
 
 ### 3.2.1 create
 
-UserMapper.java
+`UserMapper.java`
 
 ```java
 int addUser(User user);
 ```
 
-UserMapper.xml
+`UserMapper.xml`
 
 ```xml
 <insert id="addUser" parameterType="com.test.pojo.User">
@@ -385,7 +385,7 @@ UserMapper.xml
 </insert>
 ```
 
-UserDaoTest.java
+`UserDaoTest.java`
 
 ```java
 @Test
@@ -405,6 +405,8 @@ public void test3(){
 
 **留意呢度，如果無提交transaction (commit)，係唔會生效，所以記得commit，提交完結果如下**
 
+`mybatis會自動set autocommit = false，所以我地唔需要寫`
+
 ![image-20210214143035629](notes.assets/image-20210214143035629.png)
 
 
@@ -413,14 +415,14 @@ public void test3(){
 
 > 同上面類似，所以連埋一齊做
 
-UserMapper.java
+`UserMapper.java`
 
 ```java
 int updateUser(User user);
 int deleteUser(int id);
 ```
 
-UserMapper.xml
+`UserMapper.xml`
 
 ```xml
 <update id="updateUser" parameterType="com.test.pojo.User">
@@ -432,7 +434,7 @@ UserMapper.xml
 </delete>
 ```
 
-UserDaoTest.java
+`UserDaoTest.java`
 
 ```java
 @Test
@@ -470,17 +472,17 @@ public void test5(){
 > </insert>
 > ```
 >
-> 呢個做法比較生硬，因為每次用呢個type都要比曬User入面所有field (name,pwd,id)
+> 呢個做法比較生硬，因為每次用呢個type都要填曬User入面所有field (name,pwd,id)
 >
 > 如果想靈活少少，例如只insert id同name就可以用map！
 
-UserMapper.java
+`UserMapper.java`
 
 ```java
 int insertUserByMap(Map<String,Object> map);
 ```
 
-UserMapper.xml 
+`UserMapper.xml `
 
 ```xml
 <insert id="insertUserByMap" parameterType="map">
@@ -488,7 +490,7 @@ UserMapper.xml
 </insert>
 ```
 
-UserDaoTest.java
+`UserDaoTest.java`
 
 ```java
 @Test
@@ -707,6 +709,447 @@ public void test6(){
 > 留意：係將 database table column 映射至 java field
 >
 > 官網介紹：https://mybatis.org/mybatis-3/zh/sqlmap-xml.html#Result_Maps
+
+
+
+# 7. log
+
+## 7.1 intro
+
+> mybatis configuration file提供左好多唔同類型嘅log，大部分需要先導入jar file
+
+logImpl:
+
+- SLF4J 
+- LOG4J 
+- LOG4J2 
+- JDK_LOGGING 
+- COMMONS_LOGGING 
+- STDOUT_LOGGING 
+- NO_LOGGING
+
+只需要係mybatis-config.xml入面加入呢個setting就可以用
+
+![image-20210215105523209](notes.assets/image-20210215105523209.png)
+
+**output如下**
+
+![image-20210215105545586](notes.assets/image-20210215105545586.png)
+
+
+
+## 7.2 log4j
+
+咩係log4j？
+
+- Apache's open source project，通過log4j，可以控制 log 嘅output位置，例如console，file，GUI等等
+- 可以控制output format
+- 可以自定義每條log嘅級別，例如優先output error等等
+- 可以通過 configuration file 設置屬性，無需改佢嘅code
+
+
+
+`1. 導入log4j jar file`
+
+```xml
+<!-- https://mvnrepository.com/artifact/log4j/log4j -->
+<dependency>
+    <groupId>log4j</groupId>
+    <artifactId>log4j</artifactId>
+    <version>1.2.17</version>
+</dependency>
+```
+
+
+
+`2. 整一個log4j.properties做configuration`
+
+Guide: https://blog.csdn.net/eagleuniversityeye/article/details/80582140
+
+所有配置都可以上網搵，邊個有用就寫邊個，例如
+
+```properties
+#將等級為DEBUG的日誌信息輸出到console和file這兩個目的地，console和file的定義在下面
+log4j.rootLogger=DEBUG,console,file
+
+#控制台輸出的相關設置
+log4j.appender.console = org.apache.log4j.ConsoleAppender
+log4j.appender.console.Target = System.out
+log4j.appender.console.Threshold=DEBUG
+log4j.appender.console.layout = org.apache.log4j.PatternLayout
+log4j.appender.console.layout.ConversionPattern=【%c】-%m%n
+
+#文件輸出的相關設置
+log4j.appender.file = org.apache.log4j.RollingFileAppender
+log4j.appender.file.File=./log/test.log
+log4j.appender.file.MaxFileSize=10mb
+log4j.appender.file.Threshold=DEBUG
+log4j.appender.file.layout=org.apache.log4j.PatternLayout
+log4j.appender.file.layout.ConversionPattern=【%p】【%d{yy-MM-dd}】【%c】%m%n
+
+#日誌輸出級別
+log4j.logger.org.mybatis=DEBUG
+log4j.logger.java.sql=DEBUG
+log4j.logger.java.sql.Statement=DEBUG
+log4j.logger.java.sql.ResultSet=DEBUG
+log4j.logger.java.sql.PreparedStatement=DEBUG
+```
+
+
+
+`3. 係mybatis configuration file加setting`
+
+```xml
+<settings>
+    <setting name="logImpl" value="LOG4J"/>
+</settings>
+```
+
+
+
+`4. test`
+
+![image-20210215111754893](notes.assets/image-20210215111754893.png)
+
+
+
+`5.簡單實用 `
+
+可以係java file用logger output msg到 log，留意需要先import org.apache.log4j.Logger;
+
+```java
+package com.test.dao;
+
+import com.test.pojo.User;
+import com.test.utils.MybatisUtils;
+import org.apache.ibatis.session.SqlSession;
+import org.apache.log4j.Logger;  // 需要 import呢個
+import org.junit.Test;
+
+
+public class UserDaoTest {
+	// 先get logger
+    static Logger logger = Logger.getLogger(UserDaoTest.class);
+
+    @Test
+    public void test(){
+        // 獲取sqlSession object
+        SqlSession sqlSession = MybatisUtils.getSession();
+
+        UserMapper mapper = sqlSession.getMapper(UserMapper.class);
+        User user = mapper.getUserById(1);
+        System.out.println(user);
+		
+        // 可以用logger output唔同msg
+        logger.info("info: hello!!!!!!!!!!!");
+
+        sqlSession.close();
+    }
+}
+```
+
+![image-20210215112630035](notes.assets/image-20210215112630035.png)
+
+
+
+# 8. limit
+
+> 之前係sql學過，分頁係用limit， syntax為
+>
+> ```sql
+> select * from xxx limit start_index page_size
+> ```
+>
+> 宜家係java 寫一次
+
+`UserMapper.java`
+
+```java
+List<User> getUserByLimit(Map<String, Integer> map);
+```
+
+`UserMapper.xml`
+
+```xml
+<select id="getUserByLimit" parameterType="map" resultType="com.test.pojo.User">
+    select * from mybatis.user limit #{startIndex}, #{pageSize};
+</select>
+```
+
+`UserDaoTest.java`
+
+```java
+@Test
+public void test2(){
+    SqlSession sqlSession = MybatisUtils.getSession();
+    UserMapper mapper = sqlSession.getMapper(UserMapper.class);
+
+    Map<String, Integer> map = new HashMap<>();
+    map.put("startIndex",0);
+    map.put("pageSize", 2);
+    List<User> users = mapper.getUserByLimit(map);
+    for (User user : users) {
+        System.out.println(user);
+    }
+
+    sqlSession.close();
+}
+```
+
+> 從index 0開始，每頁2個，所以會攞到頭兩個users，並且output
+
+![image-20210215114703671](notes.assets/image-20210215114703671.png)
+
+
+
+# 9. annotation
+
+## 9.1 intro
+
+> ch2 第一個Mybatis program入面提到，寫SQL可以用xml 或者 annotaion，但係我地之前都係用xml，宜家學埋annotation
+>
+> `留意annotation只適用於相對簡單嘅SQL，如果要寫複雜嘅SQL，需要用xml`
+
+`mybatis-config.xml 改mapper位置`
+
+之前係綁定UserMapper.xml ，宜家改為UserMapper，因為annotation係係同一個file入面寫
+
+```xml
+<mappers>
+    <mapper class="com.test.dao.UserMapper"/>
+</mappers>
+```
+
+`UserMapper.java`
+
+```java
+public interface UserMapper {
+    @Select("select * from user")    // annotation寫法，直接係function上面寫
+    List<User> getUsers();
+}
+```
+
+**唔需要再用到UserMapper.xml**
+
+`UserDaoTest.java`
+
+```java
+@Test
+public void test01(){
+    SqlSession sqlSession = MybatisUtils.getSession();
+    UserMapper mapper = sqlSession.getMapper(UserMapper.class); // reflection
+
+    List<User> users = mapper.getUsers();
+    for (User user : users) {
+        System.out.println(user);
+    }
+
+    sqlSession.close();
+}
+```
+
+![image-20210215121705606](notes.assets/image-20210215121705606.png)
+
+
+
+## 9.2 CRUD
+
+> 留意如果argument係primitive type (int, double...)`以及String`，要係前面加一個@Param innotation
+>
+> 意義：幫傳入嘅argument(s) 起個名，令SQL annotation #{} 入面嘅argument可以一一對應
+
+例如
+
+![image-20210215151832756](notes.assets/image-20210215151832756.png)
+
+`由於test同上面大同小異，呢度只寫mapper`
+
+`UserMapper.java`
+
+```java
+public interface UserMapper {
+    @Select("select * from user")
+    List<User> getUsers();
+
+    @Select("select * from user where id = #{id}")
+    User getUserById(@Param("id") int id);
+
+    @Insert("insert into user(id,name,pwd) values (#{id},#{name},#{pwd})")
+    int addUser(User user);
+
+    @Update("update user set name = #{name}, pwd = #{pwd} where id = #{id}")
+    int updataUser(User user);
+
+    @Delete("delete from user where id = #{id}")
+    int deleteUser(@Param("id") int id);
+}
+```
+
+
+
+# 10 Lombok
+
+> Project Lombok is a java library that automatically plugs into your editor and build tools, spicing up your java.
+> `Never write another getter or equals method again`, with `one annotation` your class has a fully featured builder, Automate your logging variables, and much more.
+
+之前pojo需要寫一大堆getter setter，有lombok就可以唔洗寫 (直接寫lombok提供嘅annotation就可以)
+
+@Getter and @Setter
+@FieldNameConstants
+@ToString
+@EqualsAndHashCode
+@AllArgsConstructor, @RequiredArgsConstructor and @NoArgsConstructor
+@Log, @Log4j, @Log4j2, @Slf4j, @XSlf4j, @CommonsLog, @JBossLog, @Flogger, @CustomLog
+@Data
+@Builder
+@SuperBuilder
+@Singular
+@Delegate
+@Value
+@Accessors
+@Wither
+@With
+@SneakyThrows
+@val
+@var
+experimental @var
+@UtilityClass
+
+
+
+> 使用步驟
+
+`1. import dependency`
+
+```xml
+<!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
+<dependency>
+    <groupId>org.projectlombok</groupId>
+    <artifactId>lombok</artifactId>
+    <version>1.18.18</version>
+    <scope>provided</scope>
+</dependency>
+```
+
+`2. 下載lombok plugin`
+
+![image-20210215154929897](notes.assets/image-20210215154929897.png)
+
+`3. 使用`
+
+![image-20210215155255202](notes.assets/image-20210215155255202.png)
+
+圖中係 User pojo，將一大堆getter setter刪除後，加入 @Data annotation，Lombok就會自動生成一堆getter setter，雖然我地無寫，但係仍然有
+
+
+
+# 11. 多對一及一對多
+
+## 11.1 多對一
+
+> 之前寫嘅mapper，xml，annotation都係做緊一個database table
+>
+> 如果要關聯至兩個table又點？例如有呢個sql: 
+
+```sql
+CREATE TABLE `teacher` (
+  `id` INT(10) NOT NULL,
+  `name` VARCHAR(30) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=INNODB DEFAULT CHARSET=utf8
+
+INSERT INTO teacher(`id`, `name`) VALUES (1, 'Teacher 1'); 
+
+CREATE TABLE `student` (
+  `id` INT(10) NOT NULL,
+  `name` VARCHAR(30) DEFAULT NULL,
+  `tid` INT(10) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `fktid` (`tid`),
+  CONSTRAINT `fktid` FOREIGN KEY (`tid`) REFERENCES `teacher` (`id`)
+) ENGINE=INNODB DEFAULT CHARSET=utf8
+
+INSERT INTO `student` (`id`, `name`, `tid`) VALUES ('1', 'Student 1', '1'); 
+INSERT INTO `student` (`id`, `name`, `tid`) VALUES ('2', 'Student 2', '1'); 
+INSERT INTO `student` (`id`, `name`, `tid`) VALUES ('3', 'Student 3', '1'); 
+INSERT INTO `student` (`id`, `name`, `tid`) VALUES ('4', 'Student 4', '1'); 
+INSERT INTO `student` (`id`, `name`, `tid`) VALUES ('5', 'Student 5', '1');
+```
+
+關係如下圖
+
+![image-20210215162132682](notes.assets/image-20210215162132682.png)
+
+`每個student 有id，name，tid；teacher有id，name； student入面嘅tid 係 teacher嘅foreign key`
+
+> 多個student對應一個teacher
+
+用SQL查嘅話就係寫
+
+```sql
+select * from student s, teacher t where s.tid = t.id;
+```
+
+但係我地用java寫xml嘅話 (student table)，由於一個select只能夠對應一個table，因此只能夠獲取 id，name嘅資料，tid係無法獲取，會顯示null
+
+![image-20210215162506947](notes.assets/image-20210215162506947.png)
+
+因此需要令兩個table 有關係 (係 mapper.xml入面)
+
+> 加關係嘅方法就係resultMap
+>
+> resultMap之前都講過，當property (pojo嘅property)同 column (database嘅column) 嘅名唔一樣果陣，可以用resultMap加關係，咁mybatis就會自動關聯呢兩個名
+>
+> 同時，resultMap亦提供 `association及collection`呢兩個方法，將兩個table加上關係，寫法如下
+>
+> `留意：pojo (有Student及Teacher)，mapper及test省略，只提供xml`
+
+`StudentMapper.xml`
+
+```xml
+<!--1. -->
+<select id="getStudent" resultMap="StudentTeacher">
+	select * from student;
+</select>
+<!--2. -->
+<resultMap id="StudentTeacher" type="Student">
+	<result property="id" column="id"/>
+    <result property="name" column="name"/>
+    <association property="teacher" column="tid" select="getTeacher" javaType="Teacher"/>
+</resultMap>
+<!--3. -->
+<select id="getTeacher" resultType="Teacher">
+	select * from teacher where id = #{id};
+</select>
+```
+
+> 重點：
+>
+> ```xml
+> <association property="teacher" column="tid" select="getTeacher" javaType="Teacher"/>
+> ```
+>
+> property = Student pojo入面需要加關係嘅property
+>
+> column = Student table入面嘅column name
+>
+> select = 跟住要執行邊個
+>
+> javaType = 跟住要執行果個SQL嘅 resultType
+>
+> 
+>
+> 步驟：
+>
+> 先搵出student table嘅所有資料，由於resultMap="StudentTeacher"，佢會根據呢個map搵出 id 及name
+>
+> 至於 teacher 呢個屬性，佢根據 column="tid"知道 teacher = database入面嘅 tid column
+>
+> 再根據 select="getTeacher" 知道下一步要執行 id="getTeacher"嘅SQL，所以佢會搵出teacher table入面所有teacher where id = tid (經association傳入)，再綁定至 student嘅output
+
+
+
+## 11.2 一對多
 
 
 

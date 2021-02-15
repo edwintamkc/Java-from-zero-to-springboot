@@ -16,4 +16,6 @@ public interface UserMapper {
 
     int deleteUser(int id);
 
+    List<User> getUserByLimit(Map<String, Integer> map);
+
 }
