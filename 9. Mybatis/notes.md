@@ -1,5 +1,3 @@
-
-
 # 1. Introduction
 
 ## 1.1 what is MyBatis?
@@ -1102,7 +1100,28 @@ select * from student s, teacher t where s.tid = t.id;
 >
 > 同時，resultMap亦提供 `association及collection`呢兩個方法，將兩個table加上關係，寫法如下
 >
-> `留意：pojo (有Student及Teacher)，mapper及test省略，只提供xml`
+> `留意：mapper及test省略，只提供pojo及xml`
+
+`Student pojo`
+
+```java
+@Data
+public class Student{
+    private int id;
+    private String name;
+    private Teacher teacher;
+}
+```
+
+`Teacher pojo`
+
+```java
+@Data
+public class Teacher{
+    private int id;
+    private String name;
+}
+```
 
 `StudentMapper.xml`
 
@@ -1151,5 +1170,419 @@ select * from student s, teacher t where s.tid = t.id;
 
 ## 11.2 一對多
 
+> 同上面差唔多，不過概念係相反，唔再係 多個學生對應一個老師，而係一個老師對應多個學生
+>
+> 所以pojo 有所改變 (將studentList 綁係Teacher上)
+
+`Student pojo`
+
+```java
+@Data
+public class Student{
+    private int id;
+    private String name;
+    private int tid;
+}
+```
+
+`Teacher pojo`
+
+```java
+@Data
+public class Teacher{
+    private int id;
+    private String name;
+    
+    private List<Student> students;  // 多個學生
+}
+```
+
+同之前一樣，都係會出現差唔到其他table嘅問題
+
+![image-20210215183704934](notes.assets/image-20210215183704934.png)
 
 
+
+`TeacherMapper.xml`
+
+```xml
+<!--1. -->
+<select id="getTeacher" resultMap="TeacherStudent">
+	select * from mybatis.teacher where id = #{id};
+</select>
+<!--2. -->
+<resultMap id="TeacherStudent" type="Teacher">
+	<result property="id" column="tid"/>
+    <result property="name" column="tname"/>
+    <collection property="students" column="id" select="getStudentByTeacherId" javaType="ArrayList">
+    </collection>
+</resultMap>
+<!--3. -->
+<select id="getStudentByTeacherId" resultType="Student">
+	select * from mybatis.student where tid=#{tid};
+</select>
+```
+
+> 總結：多對一用 association，一對多用collecton
+
+
+
+# 12. dynamic SQL
+
+動態SQL 是MyBatis 的強大特性之一。如果你使用過JDBC 或其它類似的框架，你應該能理解根據不同條件拼接SQL 語句有多痛苦，例如拼接時要確保不能忘記添加必要的空格，還要注意去掉列表最後一個列名的逗號。利用動態SQL，可以徹底擺脫這種痛苦。
+
+使用動態SQL 並非一件易事，但藉助可用於任何SQL 映射語句中的強大的動態SQL 語言，MyBatis 顯著地提升了這一特性的易用性。
+
+如果你之前用過JSTL 或任何基於類XML 語言的文本處理器，你對動態SQL 元素可能會感覺似曾相識。在MyBatis 之前的版本中，需要花時間了解大量的元素。借助功能強大的基於OGNL 的表達式，MyBatis 3 替換了之前的大部分元素，大大精簡了元素種類，現在要學習的元素種類比原來的一半還要少。
+
+- **if**
+- **choose (when, otherwise)**
+- **trim (where, set)**
+- **foreach**
+
+> 根據條件拼接SQL例子↓↓↓   -.-
+
+![image-20210215190255592](notes.assets/image-20210215190255592.png)
+
+
+
+## 12.1 例子
+
+> mybatis簡化左動態SQL嘅寫法，只需要係mapper.xml 入面加入條件就ok
+>
+> 以下會用一個新嘅table 做例子
+
+
+
+### 12.1.1 準備工作
+
+`新增一個database table`
+
+```sql
+CREATE TABLE `blog`(
+`id` VARCHAR(50) NOT NULL COMMENT 'blog id',
+`title` VARCHAR(100) NOT NULL COMMENT 'blog title',
+`author` VARCHAR(30) NOT NULL COMMENT 'blog author',
+`create_time` DATETIME NOT NULL COMMENT 'blog create time',
+`views` INT(30) NOT NULL COMMENT 'view count'
+)ENGINE=INNODB DEFAULT CHARSET=utf8
+```
+
+`寫對應嘅pojo`
+
+![image-20210215202255273](notes.assets/image-20210215202255273.png)
+
+留意兩個名並不相等，呢度可以係 mybatis-config.xml 加一個setting，match underscore and camelcase
+
+```xml
+<settings>
+    <setting name="logImpl" value="STDOUT_LOGGING"/>
+    <setting name="mapUnderscoreToCamelCase" value="true"/>  
+</settings>
+```
+
+![image-20210215202601588](notes.assets/image-20210215202601588.png)
+
+
+
+### 12.1.2 if
+
+`BlogMapper.java`
+
+```java
+public interface BlogMapper {
+	// query blog
+    List<Blog> queryBlog(Map map);
+}
+```
+
+`BlogMapper.xml`
+
+```xml
+<mapper namespace="com.test.dao.BlogMapper">
+    
+    <select id="queryBlog" parameterType="map" resultType="blog">
+        select * from mybatis.blog where 1 = 1
+        <if test="title != null">
+            and title = #{title}
+        </if>
+        <if test="author != null">
+            and author = #{author}
+        </if>
+    </select>
+    
+</mapper>
+```
+
+> 目標：當user無輸入 blog tile/ author等資料時，輸出所有blog資料；當有輸入 blog title/author時，用相關資料搵出blog，並輸出
+>
+> - select * from mybatis.blog where 1 = 1  (無input時，用作輸出所有blog，`加where 1=1 係為左方便拼接`)
+>
+> - 5-10行係條件，例如當 title != null (user 有輸入title)，就拼接 and title = # {title} 到上面嘅select，變成
+>
+>   select * from mybatis.blog where 1 = 1 and title = #{title}
+
+`test.java`
+
+![image-20210216121333328](notes.assets/image-20210216121333328.png)
+
+> map 無資料時，output所有blog
+
+![image-20210216121450206](notes.assets/image-20210216121450206.png)
+
+> 留意燈泡位置，加左一個input後，只output title = "Java" 嘅blog
+
+
+
+### 12.1.3 choose (when, otherwise)
+
+>有時候，我們不想使用所有的條件，而只是想從多個條件中選擇一個使用。針對這種情況，MyBatis 提供了choose 元素，它有點像Java 中的switch 語句。
+>
+>還是上面的例子，但是策略變為：傳入了“title” 就按“title” 查找，傳入了“author” 就按“author” 查找的情形。`若兩者都沒有傳入，就返回標記為featured 的BLOG（這可能是管理員認為，與其返回大量的無意義隨機Blog，還不如返回一些由管理員精選的Blog）`
+>
+>`留意：choose只會choose一個，多個條件成立則選擇第一個`
+
+`BlogMapper.java`
+
+```java
+public interface BlogMapper {
+	List<Blog> queryBlogChoose(Map map);
+}
+```
+
+`BlogMapper.xml`
+
+```xml
+<mapper namespace="com.test.dao.BlogMapper">
+    
+    <select id="queryBlogChoose" parameterType="map" resultType="blog">
+        select * from mybatis.blog
+        <where>
+            <choose>
+                <when test="title != null">
+                    title = #{title}
+                </when>
+                <when test="author != null">
+                    and author = #{author};
+                </when>
+                <otherwise>
+                    and views = #{views};
+                </otherwise>
+            </choose>
+        </where>
+    </select>
+    
+</mapper>
+```
+
+> - where 
+>
+>   之前係用 where 1 = 1；我地亦可以用 where 呢個tag去做，當第一個條件成立果陣，佢會咁樣加
+>
+>   select * from mybatis.blog where title = #{title}                  (直接加 where title = #{title})
+>
+>   當第一個條件不成立，後面其中一個條件成立
+>
+>   select * from mybatis.blog where author = #{author}          (where呢個tag會自動刪除 and 呢個字，然後加)
+>
+>   `and 呢個字可有可無，因為choose只會選擇一個成立嘅條件`
+>
+> - when/ otherwise
+>
+>   when 同 if 差唔多，都係加條件，條件滿足就拼上去
+>
+>   otherwise 就係一個base condition，由我地設置，當user無輸入條件果陣，顯示我地想擺出嚟嘅blog，而唔係顯示全部blog (呢度用係根據view 顯示)
+
+`test.java`
+
+![image-20210216124131166](notes.assets/image-20210216124131166.png)
+
+> map入面擺一個base condition，user無input就顯示 views = 9999 嘅blog
+
+
+
+### 12.1.4 trim (where, set)
+
+> 常用於update
+
+`BlogMapper.java`
+
+```java
+public interface BlogMapper {
+	int updateBlog(Map map);
+}
+```
+
+`BlogMapper.xml`
+
+```xml
+<mapper namespace="com.test.dao.BlogMapper">
+    
+    <update id="updateBlog" parameterType="map">
+        update mybatis.blog
+        <set>
+            <if test="title != null">
+                title = #{title},
+            </if>
+            <if test="author != null">
+                author = #{author}
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+    
+</mapper>
+```
+
+> set嘅作用係動態包含需要更新嘅column，並且可以刪除 逗號 ， (例如第七行嘅逗號)
+>
+> 當user 有input title，就更新title，etc
+>
+> 然而` id 係必須要有，如果user input tile，SQL就會變成咁：`
+>
+> `update mybatis.blog set title = #{title} where id = #{id}`
+
+
+
+### 12.1.5 foreach
+
+> 用途：只選擇某部分rows，例如只選擇 id = 1/2/3
+>
+> ```sql
+> select * from user where 1=1 and (id = 1 or id = 2 or id = 3)
+> ```
+>
+> 如果用for each 就係咁
+>
+> ```xml
+> <select id="queryForEach" parameterType="map" resultType="blog">
+> 	select * from mybatis.user
+>     <where>
+>    		<foreach item="id" collection="ids" open="(" separator="or" close=")">
+>     		id=#{id}
+>    	 	</foreach>
+>     </where>
+> </select>
+> ```
+>
+> 傳入一個id list (只有1、2、3)，foreach會用我地指定嘅 open, separator, close幫我地整合，然後拼接
+>
+> 例如上述例子會整合成 (id = 1 or id = 2 or id = 3)
+
+
+
+
+
+## 12.2 減少冗餘SQL
+
+> 上面嘅xml有好多都係重複，例如
+>
+> ```xml
+> <if test="title != null">
+>     title = #{title}
+> </if>
+> <if test="author != null">
+>     author = #{author}
+> </if>
+> ```
+> 我地可以將佢封裝成一個block，當需要用果陣引用就得
+
+```xml
+<sql id="if-title-author">
+    <if test="title != null">
+        title = #{title}
+    </if>
+    <if test="author != null">
+        author = #{author}
+    </if>
+</sql>
+
+
+<mapper namespace="com.test.dao.BlogMapper">
+    
+    <select id="queryBlog" parameterType="map" resultType="blog">
+        select * from mybatis.blog where 1 = 1
+        <include refid="if-title-author"></include>
+    </select>
+    
+</mapper>
+```
+
+
+
+# 13. cache
+
+- Mybatis包含一個cache property，令我地可以好方便咁定制，配置cache
+- cache -> 提高查詢效率，減低server壓力
+- Mybatis有兩級cache：L1 cache，L2 cache
+  - 默認情況下開啟 L1 cache (SqlSession 級別，local cache，SqlSession.close() 之後無效)
+  - L2 cache需要手動開啟 (namespace 級別，一個mapper對應一個namespace)
+  - Mybatis提供一個 Cache interface，可以通過 implement Cache interface自定義 L2 cache
+- 官網：https://mybatis.org/mybatis-3/zh/sqlmap-xml.html#cache
+
+
+
+## 13.1 L1 cache
+
+> 從SqlSession開啟到關閉，所有資料會保存係 L1 cache入面
+>
+> 例如：查詢同一個 User 兩次，咁Mybatis只會查第一次，第二次會用cache，唔會查database
+>
+> cache 失效嘅情況：
+>
+> - 改變原本嘅數據
+> - 查詢其他Mapper.xml
+> - 用 sqlSession.clearCache() 手動清除
+
+
+
+## 13.2 L2 cache
+
+> L1 cache作用不大，所以有 L2 cache。
+>
+> - 開啟 L2 cache後，當 sqlSesssion.close()  (L1 cache失效)，會將 L1 cache嘅數據保存係 L2 cache之中 (類似遺傳)
+>
+> - 當新嘅 sqlSession 被開啟，就可以從 L2 cache獲取內容
+
+`開啟 L2 cache`
+
+只需要係 SQL 映射文件 (xml) 加一行
+
+```xml
+<cache/>
+```
+
+`亦可以自定義參數`
+
+```xml
+<cache
+  eviction="FIFO"
+  flushInterval="60000"
+  size="512"
+  readOnly="true"/>
+```
+
+官網：這個更高級的配置創建了一個FIFO 緩存，每隔 60 秒刷新，最多可以存儲結果對像或列表的512 個引用，而且返回的對像被認為是只讀的，因此對它們進行修改可能會在不同線程中的調用者產生衝突。
+
+可用的清除策略有：
+
+- `LRU` – 最近最少使用：移除最長時間不被使用的對象。
+- `FIFO` – 先進先出：按對象進入緩存的順序來移除它們。
+- `SOFT` – 軟引用：基於垃圾回收器狀態和軟引用規則移除對象。
+- `WEAK` – 弱引用：更積極地基於垃圾收集器狀態和弱引用規則移除對象。
+
+默認的清除策略是**LRU**。
+
+> 留意如果 L2 cache開啟，user會先查 L2 cache，無就查 L1 cache，再無先查database。
+
+
+
+## 13.3 自定義cache
+
+除了上述自定義緩存的方式，你也可以通過實現你自己的緩存，或為其他第三方緩存方案創建適配器，來完全覆蓋緩存行為。
+
+```xml
+<cache type="com.domain.something.MyCustomCache"/>
+```
+
+> 可以自定義，或者用第三方，例如 `ehcache` (需要導入 jar file)
