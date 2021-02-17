@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="address" class="com.test.pojo.Address">
+        <property name="address" value="HK"/>
+    </bean>
+
+    <bean id="student" class="com.test.pojo.Student">
+        <constructor-arg name="name" value="Tom"/>
+
+        <property name="address" ref="address"/>
+
+        <property name="books">
+            <array>
+                <value>english</value>
+                <value>maths</value>
+                <value>whatever</value>
+            </array>
+        </property>
+
+        <property name="hobbies">
+            <list>
+                <value>coding</value>
+                <value>guitar</value>
+                <value>movie</value>
+            </list>
+        </property>
+
+        <property name="card">
+            <map>
+                <entry key="octopus" value="1235412"/>
+            </map>
+        </property>
+
+        <property name="games">
+            <set>
+                <value>LOL</value>
+                <value>AOA</value>
+                <value>BOB</value>
+            </set>
+        </property>
+    </bean>
+
+</beans>
