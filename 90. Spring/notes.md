@@ -683,7 +683,7 @@ public class test {
 
 
 
-## 7.3 annotation
+## 7.3 annotation (@Autowired)
 
 > autowired除左係applicationContext.xml 入面寫，都可以用annotation實現，步驟如下
 
@@ -740,4 +740,197 @@ public class People {
 > ```
 >
 > 佢就會自動注入 id="dog123"嘅bean
+
+
+
+# 8. Annotation
+
+> document：https://docs.spring.io/spring-framework/docs/current/reference/html/core.html#beans-annotation-config
+
+需要嘅bean definition:
+
+`applicationContext.xml`
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        https://www.springframework.org/schema/context/spring-context.xsd">
+
+    <context:annotation-config/>
+
+</beans>
+```
+
+寫完呢個就可以寫pojo
+
+`User.java`
+
+```java
+public class User {
+    private String name = "Tom";
+}
+```
+
+
+
+## 8.1 @Component
+
+寫完pojo之後，本來應該就去寫翻對應嘅bean，例如
+
+```xml
+<bean id="user" class="com.test.pojo.User"/>
+```
+
+但係我地可以用Annotation寫 -> ==@Component==，呢一句就等同於上面果行code
+
+`User.java`
+
+```java
+@Component  //留意呢行
+public class User {
+    private String name = "Tom";
+}
+```
+
+> 留意：必須先在 `applicationContext.xml`開啟要掃描Annotation嘅package，例如呢個User pojo係pojo package下，所以要咁寫：
+>
+> ```xml
+> <!--enable scanning-->
+> <context:component-scan base-package="com.test.pojo"/>
+> <context:annotation-config/>
+> ```
+>
+> bean name就係 class name嘅小寫，所以係 user
+
+@Component有幾個衍生嘅annotation，分別對應於每一層layer
+
+- controller layer (@Controller)
+- service layer (@Service)
+
+- dao/mapper layer (@Repository)
+
+呢四個annotation功能係一樣：將某個Class -> bean
+
+重溫：view -> controller -> service -> mapper -> pojo -> database
+
+
+
+## 8.2 @Value
+
+`User.java`
+
+```java
+@Component  
+public class User {
+  	@Value("Tom")  //留意呢行
+    private String name;
+}
+```
+
+> 至於set property，之前寫bean就可以用constructor, setter, namespace等等嘅方法寫
+>
+> 用annotation嘅話就係用@Value，上面兩個 annotation加埋等價於
+>
+> ```xml
+> <bean id="user" class="com.test.pojo.User">
+>     <property name="name" value="Tom"/>
+> </bean>
+> ```
+
+
+
+## 8.3 @Scope
+
+`User.java`
+
+```java
+@Component
+@Scope("singleton") //留意呢行
+public class User {
+  	@Value("Tom")
+    private String name;
+}
+```
+
+> 等同於 set bean scope
+
+
+
+## 8.4 conclusion
+
+xml VS annotation
+
+- xml更萬能，適用於任何場合，並且維護方便，只需要改xml文件
+- annotation簡單，方便使用，但係維護相對複雜，因為要改嘅話要一個一個pojo咁改
+
+通常 bean 會寫係 `applicationContext.xml`入面，而annotation只做 property injection
+
+> 其他常用annotation請參閱官網：https://docs.spring.io/spring-framework/docs/current/reference/html/core.html#beans-annotation-config
+
+
+
+# 9. AOP
+
+> AOP (aspect oriented programming)!
+
+首先用講proxy
+
+
+
+## 9.1 Proxy
+
+> 點解要學proxy (代理)？因為 proxy就係Spring AOP嘅底層，分為
+>
+> - static proxy (靜態代理)
+> - dynamic proxy (動態代理)
+
+![image-20210218220239057](notes.assets/image-20210218220239057.png)
+
+代理有四個角色：
+
+- subject (一般係interface / abstract class)
+  - 只提供 method (可以理解為`行為`，被代理嘅角色 && 中介要做嘅行為)
+- real subject (被代理人)
+  - 自己會 implement abstract subject入面嘅method，因為佢本身就係想做呢件事
+  - 被中介代理
+- proxy (中介)
+  - 代理 real subject
+  - implement abstract subject入面嘅method，因為既然佢要幫real subject做某件事，佢自然要有能力完成果件事
+  - `實現 real subject嘅行為之餘，中介可以有其他行為`
+- client (客戶)
+  - 想訪問 real subject嘅人，但係宜家比中介攔住，所有嘢都要經過中介進行
+
+> 租樓例子：subject = 租呢個行為；real subject = 包租婆； proxy = 地產經紀； client = 你
+>
+> 背景：包租婆以及地產經紀implement subject (佢地都擁有放租呢個method)
+>
+> 你想租樓，但係無辦法直接搵到包租婆同佢傾，咁唯有經過地產經紀 (proxy)。地產經紀除左`幫包租婆(real subject)租樓 (實際要做嘅嘢)俾你之外，亦可能帶你睇樓、收中介費、加鹽加醋等等 (額外要做嘅嘢)`。
+>
+> 而呢個過程，就叫 Proxy 代理
+
+
+
+## 9.2 aop例子
+
+![image-20210218224117395](notes.assets/image-20210218224117395.png)
+
+宜家有 add(), search(), delete(), change() 四個methods，你老闆要求你每call 一個function就output一個 log msg。
+
+你有兩個方法：
+
+1. 去翻 add(), search(), etc 方法內部增加 log msg output
+2. 加一層 log (中介)，去做翻 add(), search()等等嘅methods，並且`加入額外行為 (output log msg)`
+
+> 揀方法一嘅話並不可取，因為會改變source code，增加好多工作量 (寫bug)
+>
+> 而方法二就係最好，寫多一層中介去output，`橫切入去(aspect oriented)`完成要求
+>
+> 呢個就係 A O P !
+
+
 
