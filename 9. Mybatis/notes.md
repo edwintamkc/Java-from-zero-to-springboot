@@ -276,6 +276,8 @@ public class MybatisUtils {
 
 `呢度用xml寫，類似於override UserDao (mapper) 入面嘅 method`
 
+`UserMapper.xml`
+
 ```xml
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper
@@ -303,11 +305,9 @@ public class MybatisUtils {
 > </mappers>
 > ```
 
-![image-20210214132347749](notes.assets/image-20210214132347749.png)
-
 ## 2.4 test
 
-`junit test:`
+`junit test`
 
 ```java
 public class UserDaoTest {
@@ -327,7 +327,7 @@ public class UserDaoTest {
 }
 ```
 
-
+![image-20210214132347749](notes.assets/image-20210214132347749.png)
 
 ## 2.5 總結
 
@@ -689,7 +689,7 @@ public void test6(){
 
 因為如果兩邊嘅field name唔一樣，係database 入面就搵唔到相應嘅column
 
-例如將 User.java 入面 private String pwd; 改成 private String password; pwd (database col) 呢個output果陣就會出現null嘅情況
+`例如將 User.java 入面 private String pwd; 改成 private String password; pwd (database col) 呢個output果陣就會出現null嘅情況`
 
 **解決方法：係UserMapper.xml寫一個resultmap 描述兩者之間嘅關係，令佢可以知道 User. java入面嘅 password = database user table嘅 pwd**
 
@@ -926,8 +926,6 @@ public interface UserMapper {
     List<User> getUsers();
 }
 ```
-
-**唔需要再用到UserMapper.xml**
 
 `UserDaoTest.java`
 
@@ -1197,7 +1195,7 @@ public class Teacher{
 }
 ```
 
-同之前一樣，都係會出現差唔到其他table嘅問題
+同之前一樣，都係會出現查唔到其他table嘅問題
 
 ![image-20210215183704934](notes.assets/image-20210215183704934.png)
 
@@ -1223,7 +1221,7 @@ public class Teacher{
 </select>
 ```
 
-> 總結：多對一用 association，一對多用collecton
+> 總結：多對一用 association，一對多用collection
 
 
 
@@ -1272,7 +1270,7 @@ CREATE TABLE `blog`(
 
 ![image-20210215202255273](notes.assets/image-20210215202255273.png)
 
-留意兩個名並不相等，呢度可以係 mybatis-config.xml 加一個setting，match underscore and camelcase
+留意兩個名並不相等，呢度可以係 mybatis-config.xml 加一個setting，match underscore and camel-case
 
 ```xml
 <settings>

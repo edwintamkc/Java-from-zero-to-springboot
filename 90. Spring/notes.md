@@ -1230,15 +1230,291 @@ public class DIYLog {
 
 
 
+# 10. 整合mybatis
+
+步驟：
+
+1. import jar file
+
+   - junit
+
+   - mybatis
+
+   - mysql
+
+   - spring
+
+   - aop
+
+   - mybatis-spring `(new)`
+
+   ```xml
+       <dependencies>
+           <dependency>
+               <groupId>junit</groupId>
+               <artifactId>junit</artifactId>
+               <version>4.12</version>
+           </dependency>
+   
+           <dependency>
+               <groupId>org.mybatis</groupId>
+               <artifactId>mybatis</artifactId>
+               <version>3.5.2</version>
+           </dependency>
+   
+           <dependency>
+               <groupId>mysql</groupId>
+               <artifactId>mysql-connector-java</artifactId>
+               <version>5.1.47</version>
+           </dependency>
+           
+           <!--spring 操作database必須要呢個-->
+           <dependency>
+               <groupId>org.springframework</groupId>
+               <artifactId>spring-jdbc</artifactId>
+               <version>5.1.9.RELEASE</version>
+           </dependency>
+   
+           <dependency>
+               <groupId>org.springframework</groupId>
+               <artifactId>spring-webmvc</artifactId>
+               <version>5.1.9.RELEASE</version>
+           </dependency>
+   
+           <dependency>
+               <groupId>org.aspectj</groupId>
+               <artifactId>aspectjweaver</artifactId>
+               <version>1.9.4</version>
+           </dependency>
+   
+           <dependency>
+               <groupId>org.mybatis</groupId>
+               <artifactId>mybatis-spring</artifactId>
+               <version>2.0.2</version>
+           </dependency>
+           
+   		<!--lombok，為左偷懶==-->
+           <dependency>
+               <groupId>org.projectlombok</groupId>
+               <artifactId>lombok</artifactId>
+               <version>1.16.10</version>
+           </dependency>
+       </dependencies>
+   ```
+
+2. 寫code
+3. 測試
 
 
 
+## 10.1 回憶mybatis
+
+寫mybatis嘅步驟：
+
+> denpendency -> 連接database -> mybatis-config.xml -> utility (getSqlSession) -> pojo -> mapper -> mapper method implementation (xml / annotation) -> test
+
+每個步驟要做嘅嘢請參閱mybatis notes！
 
 
 
-比較implement interface及 DIY class:
+## 10.2 mybatis-spring
 
-- implement interface嘅話可以傳入多個參數，比較靈活；而DIY class只能做簡單操作
+官網：https://mybatis.org/spring/#
+
+什麼是mybatis-spring?
+
+- MyBatis-Spring會幫助你將MyBatis代碼無縫地整合到Spring中。它將允許MyBatis參與到Spring的事務管理之中，創建映射器mapper和`SqlSession`並註入到bean中，以及將Mybatis的異常轉換為Spring的`DataAccessException`。最終，可以做到應用代碼不依賴於MyBatis，Spring或MyBatis-Spring。
 
 
 
+`更換datasource位置`
+
+`mybatis-config.xml`
+
+![image-20210219214412116](notes.assets/image-20210219214412116.png)
+
+**以前嘅datasource寫係 mybatis-config.xml入面整，用mybatis-spring嘅話，會轉位置寫：寫係applicationContext.xml入面，寫法如下**
+
+`applicationContext.xml`
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/aop
+        https://www.springframework.org/schema/aop/spring-aop.xsd">
+
+
+    <!--DataSource: 使用spring嘅datasource 替換mybatis配置嘅datasource-->
+    <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+        <property name="url" value="jdbc:mysql://localhost:3306/mybatis?userSSL=false&amp;useUnicode=true&amp;characterEncoding=UTF-8"/>
+        <property name="username" value="root"/>
+        <property name="password" value="123456"/>
+    </bean>
+
+</beans>
+```
+
+同時，以前mybatis亦需要用 SqlSessionFactoryBuilder -> SqlSessionFactory -> SqlSession，做法通常係寫一個utility，提供 return SqlSession方法，需要果陣用
+
+宜家都係轉位置寫：寫係applicationContext.xml入面
+
+`applicationContext.xml`
+
+```xml
+<!--sqlSessionFactory-->
+<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+    <property name="dataSource" ref="dataSource"/>
+</bean>
+```
+
+> 呢個Spring configuration file亦可以連接到 Mybatis嘅configuration file，只需要係bean加入property，如下 (呢度直接寫係 sqlSessionFactory呢個bean度)
+
+```xml
+<!--sqlSessionFactory-->
+<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+    <property name="dataSource" ref="dataSource"/>
+    <property name="configLocation" value="classpath:mybatis-config.xml"/>
+    <property name="mapperLocations" value="classpath:com/test/mapper/*.xml"/>
+</bean>
+```
+
+綁定後，好多mybatis configuration都可以寫係spring configuration file bean入面，例如mapper，上面嘅例子就加左一個mapper，係呢度加左之後，唔需要係`mybatis-config.xml`再加
+
+
+
+整完 sqlSessionFactory嘅bean，當然輪到 sqlSession
+
+```xml
+<!--sqlSession-->
+<!--SqlSessionTemplate 等同於 sqlSession，spring換左個名-->
+<bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
+    <!--只能使用constructor做DI，因為template入面無setter method-->
+    <constructor-arg name="sqlSessionFactory" ref="sqlSessionFactory"/>
+</bean>
+```
+
+去到呢一步，所有sqlSession嘅配置已經完成
+
+之後就係寫 service implementation
+
+> 根據翻之前寫 spring 嘅做法，寫完 `service interface`就應該寫 `service interface implementation`，跟住將呢個 interface implementation註冊成bean，交俾spring控制
+>
+> 宜家我地將 spring 同mybatis結合，所以寫嘅唔係 service layer嘅 implementation；而係mapper layer嘅implementation，再將mapper layer implementation 註冊成bean
+
+`UserMapperImpl.java`
+
+```java
+public class UserMapperImpl implements UserMapper{
+    private SqlSessionTemplate sqlSession;
+
+    public void setSqlSession(SqlSessionTemplate sqlSession) {
+        this.sqlSession = sqlSession;
+    }
+
+    @Override
+    public List<User> selectUser() {
+        UserMapper mapper = sqlSession.getMapper(UserMapper.class);
+        return mapper.selectUser();
+    }
+}
+```
+
+**implements 翻 Mapper，而呢個 UserMapper有一個 selectUser() 嘅方法 (SQL已經係UserMapper.xml寫左)，override之後，我地係呢個method應該return users。但係如果要用mapper執行SQL去return user，應該要用 sqlSession嚟做，所以係呢個class入面整一個 sqlSession嘅field**
+
+
+
+跟住跟翻 spring做法，寫完 implementaion之後將呢個file註冊成bean
+
+`applicationContext.xml`
+
+```xml
+<bean id="userMapper" class="com.test.mapper.UserMapperImpl">
+    <property name="sqlSession" ref="sqlSession"/>
+</bean>
+```
+
+再寫 test function
+
+原本用mybatis寫test function就會係咁
+
+`MyTest.java`
+
+```java
+@Test
+public void test01() throws IOException {
+    String resource = "mybatis-config.xml";
+    InputStream stream = Resources.getResourceAsStream(resource);
+    SqlSessionFactory factory = new SqlSessionFactoryBuilder().build(stream);
+    SqlSession sqlSession = factory.openSession(true);
+
+    UserMapper mapper = sqlSession.getMapper(UserMapper.class);
+    List<User> userList = mapper.selectUser();
+
+    for (User user : userList) {
+        System.out.println(user);
+    }
+
+    sqlSession.close();
+
+}
+```
+
+雖然之前係用 utility封裝好  return sqlSession，為左直觀顯示出分別，呢度寫埋出黎
+
+改為spring-mybatis結合後，所有嘢已經係 applicationContext.xml 配置好，或者係相應嘅MapperImpl.java 整好曬sqlSession，所以我地只需要用翻 spring嘅做法去做就可以
+
+```java
+@Test
+public void test02(){
+    ApplicationContext context = new ClassPathXmlApplicationContext("applicationContext.xml");
+    UserMapper userMapper = context.getBean("userMapper", UserMapper.class);
+    for(User user : userMapper.selectUser()){
+        System.out.println(user);
+    }
+}
+```
+
+
+
+## 10.3 簡化
+
+之前係UserMapperImpl.java 入面，寫左一個 SqlSession field，再提供setter方法俾 spring container做injection
+
+spring提供左一個叫 SqlSessionDaoSupport 嘅class，將呢個步驟都省略埋，直接extends佢就可以用 getSqlSession()
+
+簡化後如下
+
+`UserMapperImpl.java`
+
+```java
+public class UserMapperImpl extends SqlSessionDaoSupport implements UserMapper{
+    /* 之前嘅寫法
+    private SqlSessionTemplate sqlSession;
+
+    public void setSqlSession(SqlSessionTemplate sqlSession) {
+        this.sqlSession = sqlSession;
+    }*/
+
+    @Override
+    public List<User> selectUser() {
+        SqlSessionTemplate sqlSession = getSqlSession();  // 可以直接用，已經提供
+        UserMapper mapper = sqlSession.getMapper(UserMapper.class);
+        return mapper.selectUser();
+    }
+}
+```
+
+
+
+## 10.4 總結
+
+1. 寫datasource (bean)
+2. 寫 sqlSessionFactory (bean)
+3. 寫sqlSession (bean)
+4. 寫 implementation，呢個class入面應該要有 sqlSessionTemplate 呢個field，並且完成本身應該要做嘅嘢
+5. test
