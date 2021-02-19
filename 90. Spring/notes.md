@@ -915,7 +915,7 @@ xml VS annotation
 
 
 
-## 9.2 aop例子
+## 9.2 aop概念
 
 ![image-20210218224117395](notes.assets/image-20210218224117395.png)
 
@@ -931,6 +931,314 @@ xml VS annotation
 > 而方法二就係最好，寫多一層中介去output，`橫切入去(aspect oriented)`完成要求
 >
 > 呢個就係 A O P !
+
+
+
+## 9.3 add log例子
+
+### 9.3.1 dependency
+
+> 所有aop都需要先導入jar
+
+```xml
+<dependencies>
+    <dependency>
+        <groupId>org.aspectj</groupId>
+        <artifactId>aspectjweaver</artifactId>
+        <version>1.9.4</version>
+    </dependency>
+</dependencies>
+```
+
+
+
+### 9.3.2 準備工作
+
+> 呢個例子將會係原有嘅service implementation之上，增加一個 log output
+
+`UserService (interface)`
+
+```java
+public interface UserService {
+    public void add();
+    public void delete();
+    public void update();
+    public void query();
+}
+```
+
+只有四個簡單 methods
+
+`UserServiceImpl`
+
+```java
+public class UserServiceImpl implements UserService{
+    @Override
+    public void add() {
+        System.out.println("add a user");
+    }
+
+    @Override
+    public void delete() {
+        System.out.println("delete a user");
+    }
+
+    @Override
+    public void update() {
+        System.out.println("update a user");
+    }
+
+    @Override
+    public void query() {
+        System.out.println("query a user");
+    }
+}
+```
+
+> 目標：用aop係呢四個methods執行前/後增加一個log output
+
+==實現目標==
+
+> 有三種方式實現aop：
+>
+> 1. 用Spring提供嘅aop interface 
+> 2. DIY一個class，然後寫aop
+> 3. 用annotation
+
+
+
+### 9.3.3 第一種方式
+
+用Spring提供嘅aop interface 完成，首先寫翻 log 同 afterLog做 log output
+
+`Log (method運行前用)`
+
+```java
+public class Log implements MethodBeforeAdvice {
+    @Override
+    public void before(Method method, Object[] args, Object target) throws Throwable {
+        System.out.println(target.getClass().getName() + "'s " + method.getName() + " is running!");
+    }
+}
+```
+
+> MethodBeforeAdvice係 Java aop入面一個interface
+>
+> advice可以理解為行為，而呢度就係 `進入real method之前做啲咩`
+>
+> 參數詳解：
+>
+> method = 實際上要run嘅method，例如要call add() method，咁呢度就係 add()
+>
+> args = 傳入嘅參數
+>
+> target = 目標object，例如call add() 就係 UserServiceImpl呢個object
+
+`AfterLog (method運行後用)`
+
+```java
+public class AfterLog implements AfterReturningAdvice {
+    @Override
+    public void afterReturning(Object returnValue, Method method, Object[] args, Object target) throws Throwable {
+        System.out.println("Finish " + method.getName() + ". Return value is " + returnValue);
+    }
+}
+```
+
+> implements AfterReturningAdvice，`行完real method之後要做啲咩`
+>
+> 呢度嘅arguments加多左嘅 returnValue
+>
+> 除左以上寫嘅兩個，aop有大量interface可以寫，如下圖
+
+![image-20210219154007870](notes.assets/image-20210219154007870.png)
+
+> 寫完曬 real method同 log之後當然要寫bean
+
+`applicationContext.xml`
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/aop
+        https://www.springframework.org/schema/aop/spring-aop.xsd">
+
+    <!--註冊bean-->
+    <bean id="userService" class="com.test.service.UserServiceImpl"/>
+    <bean id="log" class="com.test.log.Log"/>
+    <bean id="afterLog" class="com.test.log.AfterLog"/>
+
+    <!--aop-->
+    <aop:config>
+        <!--1. 設置切入點:即係邊度執行-->
+        <!--execution(return type, 要執行嘅位置)-->
+        <!--第一個* 代表任何類型return type，位置.* 代表該位置下所有methods， 位置.*(..)代表該method傳入嘅參數不限-->
+        <aop:pointcut id="pointcut" expression="execution(* com.test.service.UserServiceImpl.*(..))"/>
+
+        <!--2. 用advisor，將 要執行嘅嘢，同切入點綁定-->
+        <aop:advisor advice-ref="log" pointcut-ref="pointcut"/>
+        <aop:advisor advice-ref="afterLog" pointcut-ref="pointcut"/>
+    </aop:config>
+
+</beans>
+```
+
+> 留意需要先寫 aop definition
+>
+> xmlns:aop="http://www.springframework.org/schema/aop"
+>
+> xsi:schemaLocation="http://www.springframework.org/schema/aop
+>         https://www.springframework.org/schema/aop/spring-aop.xsd"
+
+1. 註冊bean
+
+   寫法同之前一樣，留意除左要註冊 real subject，log (額外嘅行為) 都要註冊
+
+2. 設置aop切入點
+
+3. 寫advisor
+
+跟住就可以用
+
+`MyTest.java`
+
+```java
+public class MyTest {
+    @Test
+    public void test01(){
+        ApplicationContext context = new ClassPathXmlApplicationContext("applicationContext.xml");
+
+        // 留意dynamic proxy代理嘅係 interface，唔係實際嘅interface implementation，所以傳入 interface嘅class object
+        UserService userService = context.getBean("userService", UserService.class);
+
+        userService.add();
+    }
+}
+```
+
+![image-20210219163315048](notes.assets/image-20210219163315048.png)
+
+> 本身call UserService嘅add()，應該只會output "add a user"呢一句
+>
+> 但係用aop後，為呢個method增加額外嘅行為，所以output多兩個log!
+
+
+
+### 9.3.4 第二種方式
+
+> 直接DIY 一個java class去做output，然後係applicationContext.xml做翻aop
+
+`DIYLog`
+
+```java
+public class DIYLog {
+    public void before(){
+        System.out.println("========before========");
+    }
+    public void after(){
+        System.out.println("========after========");
+    }
+}
+```
+
+留意呢個class 並無implement aop所提供嘅interface，只係做簡單output
+
+`applicationContext.xml`
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/aop
+        https://www.springframework.org/schema/aop/spring-aop.xsd">
+
+    <!--註冊bean-->
+    <bean id="userService" class="com.test.service.UserServiceImpl"/>
+    <bean id="diyLog" class="com.test.log.DIYLog"/>
+	
+    <!--aop-->
+    <aop:config>
+        <aop:aspect ref="diyLog">
+            <!--設置切入點-->
+            <aop:pointcut id="pointcut" expression="execution(* com.test.service.UserServiceImpl.*(..))"/>
+            <!--加入aop-->
+            <aop:before method="before" pointcut-ref="pointcut"/>
+            <aop:after method="after" pointcut-ref="pointcut"/>
+        </aop:aspect>
+    </aop:config>
+</beans>
+```
+
+> 直接寫bean，寫pointcut，然後切入
+
+![image-20210219202121430](notes.assets/image-20210219202121430.png)
+
+
+
+### 9.3.5 第三種方式
+
+> 用annotation實現aop，直接係 log上面寫
+>
+> 呢度用翻`DIYLog`做例子
+
+`DIYLog`
+
+```java
+@Aspect // 將呢個class標記為aspcet
+public class DIYLog {
+    // 加入aop
+    @Before("execution(* com.test.service.UserServiceImpl.*(..))")
+    public void before(){
+        System.out.println("========before========");
+    }
+    //加入aop
+    @After("execution(* com.test.service.UserServiceImpl.*(..))")
+    public void after(){
+        System.out.println("========after========");
+    }
+}
+```
+
+`applicationContext.xml`
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/aop
+        https://www.springframework.org/schema/aop/spring-aop.xsd">
+
+    <!--註冊bean-->
+    <bean id="userService" class="com.test.service.UserServiceImpl"/>
+    <bean id="diyLog" class="com.test.log.DIYLog"/>
+	
+    <!--最尾就開翻 aop annotation-->
+    <aop:aspectj-autoproxy/>
+	
+</beans>
+```
+
+
+
+
+
+
+
+
+
+比較implement interface及 DIY class:
+
+- implement interface嘅話可以傳入多個參數，比較靈活；而DIY class只能做簡單操作
 
 
 

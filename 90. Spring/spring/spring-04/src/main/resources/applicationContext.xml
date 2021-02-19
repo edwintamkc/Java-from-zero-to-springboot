@@ -1,14 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
         https://www.springframework.org/schema/beans/spring-beans.xsd
-        http://www.springframework.org/schema/context
-        https://www.springframework.org/schema/context/spring-context.xsd">
+        http://www.springframework.org/schema/aop
+        https://www.springframework.org/schema/aop/spring-aop.xsd">
 
-    <context:annotation-config/>
-    <context:component-scan base-package="com.test.pojo"/>
+    <!--註冊bean-->
+    <bean id="userService" class="com.test.service.UserServiceImpl"/>
+    <bean id="diyLog" class="com.test.log.DIYLog"/>
+<!--    <bean id="log" class="com.test.log.Log"/>-->
+<!--    <bean id="afterLog" class="com.test.log.AfterLog"/>-->
+
+<!--    &lt;!&ndash;aop&ndash;&gt;-->
+<!--    <aop:config>-->
+<!--        &lt;!&ndash;1. 設置切入點:即係邊度執行&ndash;&gt;-->
+<!--        &lt;!&ndash;execution(return type, 要執行嘅位置)&ndash;&gt;-->
+<!--        &lt;!&ndash;第一個* 代表任何類型return type，位置.* 代表該位置下所有methods， 位置.*(..)代表任意數量arguments傳入&ndash;&gt;-->
+<!--        <aop:pointcut id="pointcut" expression="execution(* com.test.service.UserServiceImpl.*(..))"/>-->
+
+<!--        &lt;!&ndash;2. 用advisor，將 要執行嘅嘢，同切入點綁定&ndash;&gt;-->
+<!--        <aop:advisor advice-ref="log" pointcut-ref="pointcut"/>-->
+<!--        <aop:advisor advice-ref="afterLog" pointcut-ref="pointcut"/>-->
+<!--    </aop:config>-->
+    <aop:config>
+        <aop:aspect ref="diyLog">
+            <!--設置切入點-->
+            <aop:pointcut id="pointcut" expression="execution(* com.test.service.UserServiceImpl.*(..))"/>
+            <!--加入aop-->
+            <aop:before method="before" pointcut-ref="pointcut"/>
+            <aop:after method="after" pointcut-ref="pointcut"/>
+        </aop:aspect>
+    </aop:config>
 
 
 </beans>
