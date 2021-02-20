@@ -1509,6 +1509,18 @@ public class UserMapperImpl extends SqlSessionDaoSupport implements UserMapper{
 }
 ```
 
+留意，雖然係唔需要再寫SqlSession，由SqlSessionDaoSupport呢個class提供，但係呢個class都需要一個 SqlSessionFactory 去整 SqlSession，所以我地需要係 bean傳入一個SqlSessionFactory
+
+`applicationContext.xml`
+
+```xml
+<bean id="userMapper" class="com.test.mapper.UserMapperImpl">
+    <property name="sqlSessionFactory" ref="sqlSessionFactory"/>
+</bean>
+```
+
+
+
 
 
 ## 10.4 總結
@@ -1518,3 +1530,184 @@ public class UserMapperImpl extends SqlSessionDaoSupport implements UserMapper{
 3. 寫sqlSession (bean)
 4. 寫 implementation，呢個class入面應該要有 sqlSessionTemplate 呢個field，並且完成本身應該要做嘅嘢
 5. test
+
+
+
+# 11. 回顧transaction
+
+> `一係全部成功，一係全部失敗`
+>
+> 有4個特點 (`ACID`):
+>
+> - atomicity 原子性 (最小嘅單位，`同一個`transaction中嘅operation一係全部一齊完成，一係全部都失敗)
+>   - 銀行轉賬例子: A轉$200俾B，咁A減錢同B加錢要同時發生，唔可以得一個
+> - consistency 一致性 (transaction發生前後嘅數據`完整性`必須保持一致)
+>   - A同B在轉賬前，一共有$1000，轉賬完都要係1000
+> - isolation 隔離性 (多個用戶訪問DB時，DB為每一個用戶開transaction，並且每個transaction之間互相隔離，不被其他transaction干擾)
+>   - 假設B原本有500，A同C想`同時`轉$250俾B，如果無隔離，A同C嘅轉賬都係建基於B有500呢個基礎，所以兩個一齊轉最尾B都係得 750，但係實際上應該係1000
+> - durability 持久性 (transaction被提交後，對DB的改變係永久)
+>   - 假設轉賬呢個transaction提交之前，server死左，咁重啟之後DB嘅data應該係transaction提交之前嘅數據
+
+下面會寫一個例子模擬transaction失敗，再寫如何用spring寫transaction
+
+
+
+## 11.1 模擬錯誤
+
+方法：UserMapper.java內有3個functions，分別係 query，add，delete。當query時，用 add()及delete()增加及刪除一個user。
+
+`UserMapper.java`
+
+```java
+public interface UserMapper {
+    public List<User> selectUser();
+
+    public int addUser(User user);
+
+    public int deleteUser(int id);
+}
+```
+
+`UserMapper.xml`
+
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.test.mapper.UserMapper">
+    <select id="selectUser" resultType="user">
+        select * from mybatis.user;
+    </select>
+
+    <insert id="addUser" parameterType="com.test.pojo.User">
+        insert into mybatis.user (id, name, pwd) VALUES (#{id}, #{name}, #{pwd});
+    </insert>
+
+    <delete id="deleteUser" parameterType="int">
+        deletes from mybatis.user where id = #{id};
+    </delete>
+</mapper>
+```
+
+> 為左出現錯誤，將 delete 寫為 deletes 
+
+`UserMapperImpl.java`
+
+```java
+public class UserMapperImpl extends SqlSessionDaoSupport implements UserMapper{
+
+    @Override
+    public List<User> selectUser() {
+        User user = new User(5, "test!!", "abcdefg");
+        UserMapper mapper = getSqlSession().getMapper(UserMapper.class);
+        mapper.addUser(user);  // 新增一個 5 號user
+        mapper.deleteUser(5);  // 由於 delete SQL 錯誤，並不會刪除
+
+        return mapper.selectUser();
+    }
+
+    @Override
+    public int addUser(User user) {
+        return getSqlSession().getMapper(UserMapper.class).addUser(user);
+    }
+
+    @Override
+    public int deleteUser(int id) {
+        return getSqlSession().getMapper(UserMapper.class).deleteUser(id);
+    }
+}
+```
+
+係 selectUser()入面 增加及刪除一個user，但係由於delete SQL有問題，佢肯定唔會刪除，咁addUser()究竟有無用呢？
+
+`MyTest.java`
+
+```java
+@Test
+public void test01(){
+    ApplicationContext context = new ClassPathXmlApplicationContext("applicationContext.xml");
+    UserMapper mapper = context.getBean("userMapper", UserMapper.class);
+    List<User> users = mapper.selectUser(); // 獲取users，並且 add(), delete()
+    for (User user : users) {
+        System.out.println(user);
+    }
+}
+```
+
+`結果`
+
+![image-20210220102715931](notes.assets/image-20210220102715931.png)
+
+當然會出 error，因為SQL寫錯左！但係我地睇一睇 database user table
+
+![image-20210220102757748](notes.assets/image-20210220102757748.png)
+
+發現 5 號user成功增加，明顯有問題
+
+
+
+## 11.2 mybatis-spring transaction
+
+> spring document: https://docs.spring.io/spring-framework/docs/4.2.x/spring-framework-reference/html/transaction.html
+>
+> mybatis-spring document: https://mybatis.org/spring/transactions.html
+
+分為兩種：
+
+- declarative transaction management (寫一個bean！將會講呢個)
+- programmatic transaction management (係program入面處理！唔會講呢個，要用可以睇document)
+
+
+
+## 11.3 declarative transaction
+
+> 呢度嘅寫法係根據 mybatis-spring document
+
+`applicationContext.xml`
+
+```xml
+<!--1. add declarative transaction bean-->
+<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+    <constructor-arg ref="dataSource" />
+</bean>
+
+<!--2. 用tx 設置邊個 method 需要加transaction-->
+<tx:advice id="txAdvice" transaction-manager="transactionManager">
+    <tx:attributes>
+        <tx:method name="addUser" propagation="REQUIRED"/>
+        <tx:method name="deleteUser" propagation="REQUIRED"/>
+        <tx:method name="selectUser" read-only="true"/>  <!--query 不需要transaction-->
+        <tx:method name="*" propagation="REQUIRED"/> <!--亦可以設置 *，所有methods都開啟transaction-->
+    </tx:attributes>
+</tx:advice>
+
+<!--3. 設置 tx aop-->
+<aop:config>
+    <aop:pointcut id="txPointCut" expression="execution(* com.test.mapper.*.*(..))"/>
+    <aop:advisor advice-ref="txAdvice" pointcut-ref="txPointCut"/>
+</aop:config>
+```
+
+當我地再run 下面呢個test (同之前一樣)
+
+`MyTest.java`
+
+```java
+@Test
+public void test01(){
+    ApplicationContext context = new ClassPathXmlApplicationContext("applicationContext.xml");
+    UserMapper mapper = context.getBean("userMapper", UserMapper.class);
+    List<User> users = mapper.selectUser();
+    for (User user : users) {
+        System.out.println(user);
+    }
+}
+```
+
+`結果`
+
+![image-20210220105011119](notes.assets/image-20210220105011119.png)
+
+可以見到 user 5無被加到table中，因為transaction中一個失敗，就會導致所有都失敗
