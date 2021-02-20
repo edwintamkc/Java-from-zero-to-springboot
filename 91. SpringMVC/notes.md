@@ -173,6 +173,6 @@ ${msg}  <%--直接攞ModelAndView 入面存放嘅msg--%>
 8. dispatcherServlet將modelAndView send俾ViewResolver resolve
 9. ViewResolver return一個解析好嘅view name (加入prefix, suffix等) 俾dispatcherServlet
 10. dispatcherServlet搵出view嘅具體位置
-11. 俾user睇
+11. 俾user睇！
 
 ![image-20210220233638771](notes.assets/image-20210220233638771.png)
