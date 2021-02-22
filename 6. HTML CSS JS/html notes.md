@@ -105,14 +105,14 @@ hello world~
     <li>second line</li>
     <li>third line</li>
 </ol>
-<!-- 1. 無序列表 只有圓點 -->
+<!-- 2. 無序列表 只有圓點 -->
 <ul>
     <li>first line</li>
     <li>second line</li>
     <li>third line</li>
 </ul>
 
-<!-- 1. 自定義列表 -->
+<!-- 3. 自定義列表 -->
 <dl>
     <dt>列表標題</dt>
     <dd>first line</dd>
@@ -226,7 +226,7 @@ src         可以寫網站，或者路徑，建議相對路徑
 
 
 
-# 3. tml進階結構
+# 3. html進階結構
 
 > 除左head，body之外
 >
