@@ -59,10 +59,10 @@
 
 ## 3.2 layer selector
 
-> 1. 後代選擇器
-> 2. 子選擇器
-> 3. 弟弟選擇器
-> 4. 所有弟弟選擇器
+> 1. descendant selector
+> 2. child(ren) selector
+> 3. little brother selector  
+> 4. all little brother selector
 
 ```html
 <!DOCTYPE html>
@@ -71,14 +71,14 @@
 	<title>layer selector</title>
 
 	<style type="text/css">
-		/*1. 後代選擇器
+		/*1. descendant selector
 			元素下面所有該項label全被選中
 			例如呢度係揀曬所有p (p1-p6)
 		*/
 		body p{
 			color: red;
 		}
-		/*2. 子選擇器
+		/*2. child(ren) selector
 			只選一代，只選一代，只選一代
 			例如呢度係只選p1-p3
 		*/
@@ -86,7 +86,7 @@
 			color: pink;
 		}
 
-		/*3. 兄弟(弟弟)選擇器
+		/*3. little brother selector
 			只睇下面一個兄弟，如果符合條件就揀佢 ******上面係唔睇
 			例如呢度揀嘅係p2下面嘅兄弟，所以係p3，p1唔關事
 		*/
@@ -94,8 +94,8 @@
 			background-color: yellow;
 		}
 
-		/*4. 通用(所有弟弟)選擇器
-			選擇同級樓下所有兄弟
+		/*4. all little brother selector
+			選擇同級樓下所有兄弟，留意係同級
 			例如呢度會揀p3,p7,p8
 		*/
 		.class~p{

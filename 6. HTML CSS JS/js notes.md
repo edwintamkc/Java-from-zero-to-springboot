@@ -597,7 +597,7 @@ class Student{
 var Tom = new Student("Tom");
 ```
 
-> 留意 this.name 並**不必須預先declare**
+> 留意 this.name **不須預先declare**
 
 ## 5.2 inheritance
 
