@@ -14,7 +14,7 @@
 >
 > **例如 @Override，@SuppressWarning(value="unchecked") (用作表示抑制警告信息，亦可寫其他參數，例如"all"等，以抑制所有警告)，@Deprecated (用作表示不推介使用嘅function)**
 >
-> ->**可以通過reflection訪問呢啲 metadata (元數據)
+> ->可以通過reflection訪問呢啲 metadata (元數據)
 
 
 
