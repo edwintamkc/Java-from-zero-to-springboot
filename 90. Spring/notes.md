@@ -313,7 +313,7 @@ spring xml file提供嘅配置並不多，有以下幾個：
 
 ## 5.3 import
 
-> 導入其他 spring configuration file
+> 導入其他 spring configuration file，`留意只能應用於spring configuration file，其他文件需要用其他方法`
 
 `applicationContext.xml`
 
@@ -509,7 +509,9 @@ public class Test {
 </beans>
 ```
 
-兩個bean都係一樣，上面用setter，下面用 p:property name = "value" ，十分方便！
+> 兩個bean都係一樣，上面用setter，下面用 p:property name = "value" ，十分方便！
+>
+> 留意p namesapce係用setter做injection
 
 `c namespace`
 
@@ -538,6 +540,8 @@ public class Test {
 ```
 
 > 留意使用c namespace嘅話，pojo需要有參構造及無參構造
+>
+> 因為c namesapce用constructor做injection
 
 
 
@@ -900,7 +904,7 @@ xml VS annotation
   - 被中介代理
 - proxy (中介)
   - 代理 real subject
-  - implement abstract subject入面嘅method，因為既然佢要幫real subject做某件事，佢自然要有能力完成果件事
+  - implement abstract subject入面嘅method，因為既然佢要幫real subject做某件事，佢自然要有能力完成果件事 (implement abstract subject's method)
   - `實現 real subject嘅行為之餘，中介可以有其他行為`
 - client (客戶)
   - 想訪問 real subject嘅人，但係宜家比中介攔住，所有嘢都要經過中介進行
@@ -918,6 +922,8 @@ xml VS annotation
 ## 9.2 aop概念
 
 ![image-20210218224117395](notes.assets/image-20210218224117395.png)
+
+例子：
 
 宜家有 add(), search(), delete(), change() 四個methods，你老闆要求你每call 一個function就output一個 log msg。
 
@@ -1024,7 +1030,7 @@ public class Log implements MethodBeforeAdvice {
 
 > MethodBeforeAdvice係 Java aop入面一個interface
 >
-> advice可以理解為行為，而呢度就係 `進入real method之前做啲咩`
+> advice可以理解為行為，係呢度代表 `進入real method之前做啲咩`
 >
 > 參數詳解：
 >
@@ -1327,13 +1333,15 @@ public class DIYLog {
 
 
 
-`更換datasource位置`
+`更換dataSource(以及database environment)位置`
 
 `mybatis-config.xml`
 
 ![image-20210219214412116](notes.assets/image-20210219214412116.png)
 
-**以前嘅datasource寫係 mybatis-config.xml入面整，用mybatis-spring嘅話，會轉位置寫：寫係applicationContext.xml入面，寫法如下**
+**以前嘅database environment，以及datasource係寫係 mybatis-config.xml入面，用mybatis-spring嘅話，會轉位置寫：寫係applicationContext.xml入面，寫法如下**
+
+`留意spring -> database需要先加dependency： spring-jdbc`
 
 `applicationContext.xml`
 
@@ -1346,7 +1354,6 @@ public class DIYLog {
         https://www.springframework.org/schema/beans/spring-beans.xsd
         http://www.springframework.org/schema/aop
         https://www.springframework.org/schema/aop/spring-aop.xsd">
-
 
     <!--DataSource: 使用spring嘅datasource 替換mybatis配置嘅datasource-->
     <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
@@ -1383,7 +1390,7 @@ public class DIYLog {
 </bean>
 ```
 
-綁定後，好多mybatis configuration都可以寫係spring configuration file bean入面，例如mapper，上面嘅例子就加左一個mapper，係呢度加左之後，唔需要係`mybatis-config.xml`再加
+綁定後，好多mybatis configuration都可以寫係spring configuration file bean入面，例如mapper，上面嘅例子就加左一個mapper，`係呢度加左之後，唔需要係mybatis-config.xml再加`
 
 
 
@@ -1402,9 +1409,9 @@ public class DIYLog {
 
 之後就係寫 service implementation
 
-> 根據翻之前寫 spring 嘅做法，寫完 `service interface`就應該寫 `service interface implementation`，跟住將呢個 interface implementation註冊成bean，交俾spring控制
+> 根據翻之前寫 spring 嘅做法，寫完 `service interface`就應該寫 `service interface implementation`，跟住將呢個 service implementation註冊成bean，交俾spring控制
 >
-> 宜家我地將 spring 同mybatis結合，所以寫嘅唔係 service layer嘅 implementation；而係mapper layer嘅implementation，再將mapper layer implementation 註冊成bean
+> 宜家我地將 spring 同mybatis結合，所以寫嘅唔係 service嘅 implementation；而係mapper嘅implementation，再將mapper implementation 註冊成bean
 
 `UserMapperImpl.java`
 
@@ -1664,6 +1671,8 @@ public void test01(){
 ## 11.3 declarative transaction
 
 > 呢度嘅寫法係根據 mybatis-spring document
+>
+> `會用埋aop，所以要aop dependency: aspectjweaver`
 
 `applicationContext.xml`
 

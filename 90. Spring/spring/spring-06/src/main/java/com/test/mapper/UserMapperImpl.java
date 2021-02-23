@@ -8,6 +8,12 @@ import java.util.List;
 
 public class UserMapperImpl extends SqlSessionDaoSupport implements UserMapper{
 
+    private SqlSessionTemplate sqlSession;
+
+    public void setSqlSession(SqlSessionTemplate sqlSession) {
+        this.sqlSession = sqlSession;
+    }
+
     @Override
     public List<User> selectUser() {
         User user = new User(5, "test!!", "abcdefg");

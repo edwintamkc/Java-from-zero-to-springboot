@@ -34,7 +34,7 @@
     </bean>
 
     <bean id="userMapper" class="com.test.mapper.UserMapperImpl">
-        <property name="sqlSessionFactory" ref="sqlSessionFactory"/>
+        <property name="sqlSession" ref="sqlSession"/>
     </bean>
 
     <!--1. add declarative transaction bean-->
