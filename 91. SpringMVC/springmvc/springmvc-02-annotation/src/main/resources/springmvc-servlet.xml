@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/mvc https://www.springframework.org/schema/mvc/spring-mvc.xsd">
+
+    <!--自動scan annotation-->
+    <context:component-scan base-package="com.test.controller"/>
+    <!--令spring mvc不處理static resources： .css .js .html , etc-->
+    <mvc:default-servlet-handler/>
+    <!--呢一行令mvc annotation生效，例如@RequestMapping；而之前嘅做法係註冊兩個bean，分別為handlerMapping及handlerResolver-->
+    <mvc:annotation-driven/>
+    <!--viewResolver依然要自己整-->
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver" id="InternalResourceViewResolver">
+        <property name="prefix" value="/WEB-INF/jsp/"/>
+        <property name="suffix" value=".jsp"/>
+    </bean>
+
+
+</beans>
