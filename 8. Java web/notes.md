@@ -53,11 +53,11 @@ Tomcat係技術先進，性能穩定嘅輕量級應用服務器 (主要係免費
 > 網站應有嘅結構
 >
 > ```java
-> --webapps (Tomcat server嘅web目錄)
+> --webapps (Tomcat server)
 > 	--ROOT
 > 	--Yourfile 		(網站嘅目錄名)
 > 		--classes	(java program)
-> 		--lib		(web所依賴嘅 .jar 文件)
+> 		--lib		(web所依賴嘅 .jar file)
 > 	--index.html	(default homepage)
 > 	--static		(資源文件)
 > 		--css
@@ -66,7 +66,6 @@ Tomcat係技術先進，性能穩定嘅輕量級應用服務器 (主要係免費
 > 		--img
 >     --....
 > ```
->
 
 
 
@@ -74,7 +73,7 @@ Tomcat係技術先進，性能穩定嘅輕量級應用服務器 (主要係免費
 
 - Maven
   + **Maven** is a [build automation](https://en.wikipedia.org/wiki/Build_automation) tool used primarily for [Java](https://en.wikipedia.org/wiki/Java_(programming_language)) projects. 
-  + 簡單而言，由於學javaweb需要大量 . jar 文件，如果我地一個一個手動下載，導入，太慢
+  + 簡單而言，由於學javaweb需要大量 . jar file，如果我地一個一個手動下載，導入，太慢
   + 所以需要一個工具，去幫我地自動導入.jar，就係Maven啦！
 - Tomcat
   - Tomcat provides a "pure Java" [HTTP](https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol) [web server](https://en.wikipedia.org/wiki/Web_server) environment in which [Java](https://en.wikipedia.org/wiki/Java_(programming_language)) code can run.
@@ -86,9 +85,9 @@ Tomcat係技術先進，性能穩定嘅輕量級應用服務器 (主要係免費
 
 ## 5.1 簡介	
 
-- Servlet係Sun公司整出嚟嘅技術，用作開發動態web
+- Servlet係Sun公司整出嚟嘅技術，用作開發dynamic web
 - 如果你想整一個Servlet program，只需要兩步:
-  - 寫一個class，implement Servlet interface (繼承佢個仔 HttpServlet就得)
+  - 寫一個class，implement Servlet interface (繼承佢個仔 - HttpServlet就得)
   - 將寫好嘅class裝落web server中
 
 > 需要Servlet嘅深層原因如下，複製自 知乎: @柳树
@@ -99,9 +98,9 @@ Tomcat係技術先進，性能穩定嘅輕量級應用服務器 (主要係免費
 
 ![image-20210119225611134](notes.assets/image-20210119225611134.png)
 
-## 5.2 創建servlet項目
+## 5.2 創建servlet
 
-1. 係IDEA整一個新嘅Maven項目，del左佢嘅src (呢個空嘅pj就係Maven主pj)
+1. 係IDEA整一個新嘅Maven project，del左佢嘅src (呢個空嘅pj就係Maven主pj)
 
 2. Maven父子級pj
 
@@ -179,13 +178,13 @@ Tomcat係技術先進，性能穩定嘅輕量級應用服務器 (主要係免費
 >
 > **Servlet -> GenericServlet -> HttpServlet (去到呢一步先真正實現service，前兩個得個function name)**
 >
-> 而我地就係要寫一個class繼承HttpServlet，再重寫
+> 而我地就係要寫一個class繼承HttpServlet，再override
 
 ![image-20210119222558852](notes.assets/image-20210119222558852.png)
 
 ### 5.3.2 寫Servlet同瀏覽器之間嘅映射
 
-映射: 建立關係。點解需要建立呢個關係？因為我地寫嘅係JAVA，如果需要通過瀏覽器訪問，係需要一個中間商(container) web server(tomcat)去幫手，但係tomcat點知道你俾嘅url係駁去邊度呢？所以我地需要係web.xml 入面註冊我地寫嘅servlet
+映射: 建立關係。點解需要建立呢個關係？因為我地寫嘅係JAVA，如果需要通過瀏覽器access，係需要一個中間商(container) web server(例如tomcat)去幫手，但係tomcat點知道你俾嘅url係駁去邊度呢？所以我地需要係web.xml 入面註冊我地寫嘅servlet，稱之為映射
 
 web.xml嘅作用如下：
 
@@ -272,11 +271,11 @@ Deployment下新增一個.war，application context相當於係主頁嘅url ?
 
 因為未去第一個servlet program set `name` 呢個attribute，所以第二個servlet program讀唔到數據，顯示null
 
-入一次Hello再入第二個，顯示如下
+`入一次Hello再入第二個，顯示如下`
 
 ![image-20210120161429999](notes.assets/image-20210120161429999.png)
 
-成功從ServletContext獲取數據
+> 成功從ServletContext獲取數據
 
 
 
@@ -325,7 +324,7 @@ public class Dispatch extends HttpServlet {
 }
 ```
 
-> > **留意轉發係唔需要寫項目名，直接寫/文件位置 (係xml登記嘅位置)就得！！**
+> > **留意dispatch係`唔需要`寫project name，直接寫`/文件位置` (係xml登記嘅位置)就得！！**
 > >
 > > **而redirect係要寫項目名**
 >
@@ -333,7 +332,7 @@ public class Dispatch extends HttpServlet {
 
 ![image-20210120164900651](notes.assets/image-20210120164900651.png)
 
-> 結果：dispatch呢個Servlet係無output，但係瀏覽器輸出左呢一句
+> 結果：雖然dispatch呢個Servlet係無output，但係瀏覽器輸出左呢一句
 >
 > 可以見到佢將請求轉發到第二個Servlet (就係上圖果個)
 
@@ -349,7 +348,7 @@ public class Dispatch extends HttpServlet {
 
 ![image-20210120185656564](notes.assets/image-20210120185656564.png)
 
-留意左下角，輸入url後直接下載果個file
+留意左下角文件1.jpg，輸入url後直接下載果個file
 
 ```java
 package com.test.servlet;
@@ -402,9 +401,9 @@ public class FileServlet extends HttpServlet {
 >
 > 常見場景：登陸後，成功則跳轉到第二個page
 >
-> **留意dispatch係唔需要寫項目名，因為轉發係發生係server`內部`，直接寫/文件位置 (係xml登記嘅位置)就得！！**
+> **留意dispatch係唔需要寫project name，因為dispatch係發生係server`內部`，直接寫/文件位置 (係xml登記嘅位置)就得！！**
 >
-> **而redirect係要寫項目名，因為要俾一個其他server嘅address佢，發生係`外部`**
+> **而redirect係要寫project name，因為要俾其他server嘅address佢，發生係`外部`**
 
 ![image-20210120230520667](notes.assets/image-20210120230520667.png)
 
@@ -561,7 +560,6 @@ public class CookiesDemo01 extends HttpServlet {
 ```java
 URLEncoder.encode("我是中文字","UTF-8");
 URLDecoder.decode(cookie.getvalue(),"UTF-8")
-   
 ```
 
 
@@ -573,7 +571,7 @@ URLDecoder.decode(cookie.getvalue(),"UTF-8")
 - Server會為每一個client (瀏覽器) 創建一個Session object，入面保存重要信息，並擁有一個sessionID
 - sessionID會放係cookie，順便send埋俾client (session仍然保存係server，cookie保存係client)
 
-> 創建session
+> create session
 
 ```java
 package com.test.servlet;
@@ -615,7 +613,7 @@ public class SessionDemo01 extends HttpServlet {
 }
 ```
 
-> 刪除session，有兩種方法
+> delete session，有兩種方法
 
 ```java
 // 1. 手動刪除
@@ -640,7 +638,7 @@ public class SessionDemo01 extends HttpServlet {
 
 # 7. JSP
 
-## 7.1 什麼是JSP
+## 7.1 咩係JSP?
 
 > JSP = java server pages 
 >
@@ -658,11 +656,11 @@ public class SessionDemo01 extends HttpServlet {
 
 ![image-20210122113339088](notes.assets/image-20210122113339088.png)
 
-可以見到其實佢都係一個servlet，用write嚟寫翻html上去browser
+可以見到其實佢都係一個servlet，用out.write()嚟寫翻html上去browser
 
 > 每次client請求一個jsp，例如 當 run個program果陣，請求緊嘅係 index.jsp
 >
-> 但係不能直接係瀏覽器輸出 jsp，要將佢轉為 java先
+> 但係唔可以直接係瀏覽器輸出 jsp，要將佢轉為 java先
 >
 > 而呢個java file入面會寫個class extends HttpServlet
 >
@@ -899,7 +897,7 @@ ORM：
 | 2    | Jerry    | 20   |
 | 3    | Doraemon | 100  |
 
-`所對應嘅java class就係`
+`所對應嘅java bean就係`
 
 ```java
 class People{
@@ -937,7 +935,7 @@ new People(1, "Tom", 20);   // 對應翻DB入面嘅row，每個row就係一個ja
 
 > user睇到嘅係 view (視圖層)，入面展示數據，提供操作入口
 >
-> 當佢使用各種操作果陣，就會send 去controller (控制層)，controller再交俾 model (數據層)做
+> 當佢使用各種operation果陣，server就會send呢個request 去controller (控制層)，controller再交俾 model (數據層)做
 >
 > 而model就係做各種operation嘅layer
 
