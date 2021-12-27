@@ -1,2 +1,2 @@
 # Java
-credit: kuangstudy.com
+A repo to record my studying regarding Java
