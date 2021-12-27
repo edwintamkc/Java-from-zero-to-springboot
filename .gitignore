@@ -2,13 +2,14 @@
 *.log
 *.lock
 
-### Package files ###
+# Package files #
 *.jar
 *.war
 *.ear
+target/
 
 
-### idea ###
+# idea
 .idea/
 *.iml
 
@@ -21,6 +22,7 @@
 .project
 .settings/
 bin/
+
 *.log
 tmp/
 
