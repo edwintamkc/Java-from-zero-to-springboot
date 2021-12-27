@@ -22,6 +22,16 @@ The project entry is named xxxxApplication, start Tomcat server by running this 
 
 ![image-20211227190146332](notes.assets/image-20211227190146332.png)
 
+```java
+@RestController
+public class HelloWorldController {
+    @RequestMapping("/hello")
+    public String hello(){
+        return "hello world!";
+    }
+}
+```
+
 Add a controller `in the same level of your springbootApplication file (as shown in the circle)`, and write this classic example. Then run the application again
 
 ![image-20211227190523991](notes.assets/image-20211227190523991.png)
