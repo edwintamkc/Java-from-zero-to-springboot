@@ -1,0 +1,13 @@
+
+
+
+person:
+  name: test
+  age: 15
+  hobbyList:
+    - Code
+    - Guitar
+    - Bouldering
+  dog:
+    name: doggy
+    age: 3

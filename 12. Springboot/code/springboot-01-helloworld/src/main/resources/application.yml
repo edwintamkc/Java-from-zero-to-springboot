@@ -1,0 +1,17 @@
+# key-value
+name: test
+
+# object
+student:
+  name: test
+  age: 15
+
+# inline
+person: {name: test, age: 3}
+
+# array
+pet:
+  - cat
+  - dog
+
+pets: [cat, dog]
