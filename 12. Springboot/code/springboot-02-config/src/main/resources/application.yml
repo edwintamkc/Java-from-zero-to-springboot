@@ -11,3 +11,11 @@ person:
   dog:
     name: doggy
     age: 3
+
+
+spring:
+  profiles:
+    active: dev
+server:
+  address:
+
