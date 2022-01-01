@@ -459,5 +459,66 @@ To ensure the list is thread safe, we could use the following methods:
   }
   ```
 
-  
+# 5. Runnable and Callable
+
+> Review: there are 3 types of method to create a thread
+>
+> - Use the thread class
+> - Implement Runnable interface
+> - Implement Callable interface
+
+In previous examples,  method 1 is used commonly. In this chapter, we would go through Runnable and Callable methods.
+
+## 5.1 Runnable
+
+```java
+public class MyRunnable {
+    public static void main(String[] args) {
+        new Thread(new MyThread2()).start();
+    }
+}
+
+class MyThread2 implements Runnable{
+    @Override
+    public void run() {
+        System.out.println(Thread.currentThread().getName() + " is running");
+    }
+}
+```
+
+Step:
+
+1. Write a class implement Runnable interface
+2. Create a thread using new Thread()
+3. Send a Runnable implementation to Thread constructor as a parameter
+
+4. Call the start method
+
+## 5.2 Callable
+
+```java
+public class MyCallable {
+    public static void main(String[] args) {
+        FutureTask task = new FutureTask(new MyThread());
+        new Thread(task).start();
+    }
+}
+
+class MyThread implements Callable<String>{
+    @Override
+    public String call() throws Exception {
+        return "Call!";
+    }
+}
+```
+
+Step:
+
+1. Write a class implement Callable interface
+
+2. Create a FutureTask object, send Callable implementation as argument
+
+3. Create thread object, send FutureTask as argument
+
+   **Thread class constructor only accepts Runnable object, we could not use a Callable object to create a thread. However, we could use FutureTask as a medium, since future task class is one of the implementations of Callable interface and it accepts Callable as constructor argument.**
 
