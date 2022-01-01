@@ -361,3 +361,103 @@ class Chicken2{
 `output`
 
 ![image-20211231143909045](notes.assets/image-20211231143909045.png)
+
+# 4. Safe list
+
+> List is the most commonly used data structures in working. When we need to create a String list, usually we would write
+>
+> ```java
+> List<String> list = new ArrayList<>();
+> ```
+>
+> It seems good, however, when many threads modifying the list at the same time. It would throw **ConcurrentModificationException**!
+
+`Example`
+
+```java
+public class SafeList {
+    public static void main(String[] args) {
+        List<String> list = new ArrayList<>();
+
+        for (int i = 0; i < 10; i++) {
+            new Thread(() -> {
+                list.add(UUID.randomUUID().toString().substring(0,3));
+                System.out.println(list);
+            }).start();
+        }
+    }
+}
+```
+
+In this example, we create 10 threads, each thread put a String into the list. When we run the program, it ouputs:
+
+![image-20220101174912553](notes.assets/image-20220101174912553.png)
+
+> Conclusion: ArrayList is **NOT** thread safe.
+>
+> ![image-20220101175057272](notes.assets/image-20220101175057272.png)
+>
+> Its add() function simply grow the list by 1 capacity and then put the data to it. When multiple threads putting elements into the same position, it would throws exception.
+
+`Thread safe list`
+
+To ensure the list is thread safe, we could use the following methods:
+
+- **Adopts Vector**
+
+  ```java
+  List<String> list = new Vector<>();
+  ```
+
+  It is thread safe because it applies the reentrance lock (synchronized keyword)
+
+  ![image-20220101175443016](notes.assets/image-20220101175443016.png)
+
+- **Adopts Collections.synchronizedList()**
+
+  ```java
+  List<String> list = Collections.synchronizedList(new ArrayList<>());
+  ```
+
+  It is thread safe because it use the mutex lock
+
+  ![image-20220101180114327](notes.assets/image-20220101180114327.png)
+
+- **Adopts CopyOnWriteArrayList**
+
+  ```java
+  List<String> list = new CopyOnWriteArrayList<>();
+  ```
+
+  CopyOnWriteArrayList is a library under Java concurrent package. When a thread wants to add object to it, it would NOT modify the original array directly. Instead, it would copy the old array to a new array, and then put the newly added element to the new array. Then set the array pointer to the new array. 
+
+  ```java
+  public void add(int index, E element) {
+      final ReentrantLock lock = this.lock;
+      lock.lock();
+      try {
+          Object[] elements = getArray();
+          int len = elements.length;
+          if (index > len || index < 0)
+              throw new IndexOutOfBoundsException("Index: "+index+
+                                                  ", Size: "+len);
+          Object[] newElements;
+          int numMoved = len - index;
+          if (numMoved == 0)
+              newElements = Arrays.copyOf(elements, len + 1);
+          else {
+              newElements = new Object[len + 1];
+              System.arraycopy(elements, 0, newElements, 0, index);
+              System.arraycopy(elements, index, newElements, index + 1,
+                               numMoved);
+          }
+          newElements[index] = element;
+          setArray(newElements);
+      } finally {
+          lock.unlock();
+      }
+  }
+  ```
+
+  
+
