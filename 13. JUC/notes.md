@@ -549,3 +549,43 @@ public class MyCountDownLatch {
 
 > The main thread would be blocked by countDownLatch.await() until the count = 0
 
+## 6.2 CyclicBarrier
+
+>A synchronization aid that allows a set of threads to all wait for each other to reach a common barrier point. CyclicBarriers are useful in programs involving a fixed sized party of threads that must occasionally wait for each other. The barrier is called *cyclic* because it can be re-used after the waiting threads are released.
+>
+>
+>
+>A `CyclicBarrier` supports an optional [`Runnable`](https://docs.oracle.com/javase/7/docs/api/java/lang/Runnable.html) command that is run once per barrier point, after the last thread in the party arrives, but before any threads are released. This *barrier action* is useful for updating shared-state before any of the parties continue.
+
+```java
+public class MyCyclicBarrier {
+    public static void main(String[] args) {
+        CyclicBarrier barrier = new CyclicBarrier(7, ()->{
+            System.out.println("Summon the dragon by 7 dragon balls!");
+        });
+
+        for (int i = 0; i < 7; i++) {
+            new Thread(()->{
+                System.out.println("Get dragon ball " + Thread.currentThread().getName());
+
+                try {
+                    barrier.await();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (BrokenBarrierException e) {
+                    e.printStackTrace();
+                }
+            }, String.valueOf(i+1)).start();
+        }
+    }
+}
+```
+
+>In the above example, we set the count = 7 initially, and send a thread to it (when count == 0, it would run). In the loop, we use **barrier.await()** to block the current thread **AND** decrement the count by 1.
+>
+>When count == 0, the program will print **Summon the dragon by 7 dragon balls!**. Then it would also terminates all the awaiting threads. 
+
+![image-20220102135800654](notes.assets/image-20220102135800654.png)
+
+`The dragon could be summoned cyclically if we set the loop >= 7, let say 20. Then the dragon would come up 2 times, and at last there would be 6 threads in the blocking state (since there would be 6 thread awaiting at the end)`
+
