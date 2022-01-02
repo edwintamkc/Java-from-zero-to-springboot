@@ -589,3 +589,33 @@ public class MyCyclicBarrier {
 
 `The dragon could be summoned cyclically if we set the loop >= 7, let say 20. Then the dragon would come up 2 times, and at last there would be 6 threads in the blocking state (since there would be 6 thread awaiting at the end)`
 
+## 6.3 Semaphore
+
+>A counting semaphore. Conceptually, a semaphore maintains a set of permits. Each [`acquire()`](https://docs.oracle.com/javase/7/docs/api/java/util/concurrent/Semaphore.html#acquire()) blocks if necessary until a permit is available, and then takes it. Each [`release()`](https://docs.oracle.com/javase/7/docs/api/java/util/concurrent/Semaphore.html#release()) adds a permit, potentially releasing a blocking acquirer. However, no actual permit objects are used; the `Semaphore` just keeps a count of the number available and acts accordingly.
+
+```java
+public class MySemaphore {
+    public static void main(String[] args) {
+        Semaphore semaphore = new Semaphore(2);
+        for (int i = 0; i < 4; i++) {
+            new Thread(() -> {
+                try {
+                    semaphore.acquire();
+                    System.out.println(Thread.currentThread().getName() + " get a position");
+                    TimeUnit.SECONDS.sleep(2);
+                    System.out.println(Thread.currentThread().getName() + " is leaving");
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } finally {
+                    semaphore.release();
+                }
+            }, String.valueOf(i)).start();
+        }
+    }
+}
+```
+
+> Since the init permits is 2, only 2 threads could enter the session when they call acquire(). Other threads would be blocked in the acquire(). When they release(), the permits in semaphore would be incremented by 1, therefore the blocking thread could enter the critical session.
+
+![image-20220102141300602](notes.assets/image-20220102141300602.png)
+
