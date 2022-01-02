@@ -522,3 +522,30 @@ Step:
 
    **Thread class constructor only accepts Runnable object, we could not use a Callable object to create a thread. However, we could use FutureTask as a medium, since future task class is one of the implementations of Callable interface and it accepts Callable as constructor argument.**
 
+# 6. Useful utilities in concurrent package
+
+## 6.1 CountDownLatch
+
+>A synchronization aid that allows one or more threads to wait until a set of operations being performed in other threads completes.
+>
+>A `CountDownLatch` is initialized with a given *count*. The [`await`](https://docs.oracle.com/javase/7/docs/api/java/util/concurrent/CountDownLatch.html#await()) methods block **until the current count reaches zero** due to invocations of the [`countDown()`](https://docs.oracle.com/javase/7/docs/api/java/util/concurrent/CountDownLatch.html#countDown()) method, after which all waiting threads are released and any subsequent invocations of [`await`](https://docs.oracle.com/javase/7/docs/api/java/util/concurrent/CountDownLatch.html#await()) return immediately.
+
+```java
+public class MyCountDownLatch {
+    public static void main(String[] args) throws InterruptedException {
+        CountDownLatch countDownLatch = new CountDownLatch(5); // set init count = 5
+
+        for (int i = 0; i < 5; i++) {
+            new Thread(() -> {
+                System.out.println("Thread " + Thread.currentThread().getName() + " is running");
+                countDownLatch.countDown(); // count down by 1
+            }, String.valueOf(i)).start();
+        }
+        countDownLatch.await();  // wait until the count is = 0
+        System.out.println("Finish!");
+    }
+}
+```
+
+> The main thread would be blocked by countDownLatch.await() until the count = 0
+
