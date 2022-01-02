@@ -688,3 +688,120 @@ class Resource{
 
 ![image-20220102145131471](notes.assets/image-20220102145131471.png)
 
+# 8. BlcokingQueue
+
+`BlockingQueue` methods come in four forms, with different ways of handling operations that cannot be satisfied immediately, but may be satisfied at some point in the future: one throws an exception, the second returns a special value (either `null` or `false`, depending on the operation), the third blocks the current thread indefinitely until the operation can succeed, and the fourth blocks for only a given maximum time limit before giving up. These methods are summarized in the following table:
+
+|             | *Throws exception*                                           | *Special value, wont throw exception*                        | *Blocks*                                                     | *Times out*                                                  |
+| ----------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| **Insert**  | [add(e)](https://docs.oracle.com/javase/7/docs/api/java/util/concurrent/BlockingQueue.html#add(E)) | [offer(e)](https://docs.oracle.com/javase/7/docs/api/java/util/concurrent/BlockingQueue.html#offer(E)) | [put(e)](https://docs.oracle.com/javase/7/docs/api/java/util/concurrent/BlockingQueue.html#put(E)) | [offer(e, time, unit)](https://docs.oracle.com/javase/7/docs/api/java/util/concurrent/BlockingQueue.html#offer(E, long, java.util.concurrent.TimeUnit)) |
+| **Remove**  | [remove()](https://docs.oracle.com/javase/7/docs/api/java/util/concurrent/BlockingQueue.html#remove(java.lang.Object)) | [poll()](https://docs.oracle.com/javase/7/docs/api/java/util/concurrent/BlockingQueue.html#poll(long, java.util.concurrent.TimeUnit)) | [take()](https://docs.oracle.com/javase/7/docs/api/java/util/concurrent/BlockingQueue.html#take()) | [poll(time, unit)](https://docs.oracle.com/javase/7/docs/api/java/util/concurrent/BlockingQueue.html#poll(long, java.util.concurrent.TimeUnit)) |
+| **Examine** | [element()](https://docs.oracle.com/javase/7/docs/api/java/util/Queue.html#element()) | [peek()](https://docs.oracle.com/javase/7/docs/api/java/util/Queue.html#peek()) | *not applicable*                                             | *not applicable*                                             |
+
+`add(), remove() and element()`
+
+```java
+public class MyBlockingQueue {
+    public static void main(String[] args) {
+        ArrayBlockingQueue<Object> queue = new ArrayBlockingQueue<>(3); // size of 3
+		// add() return true/false
+        System.out.println(queue.add("a")); 
+        System.out.println(queue.add("b"));
+        System.out.println(queue.add("c"));
+
+        System.out.println(queue.element()); // element() return peek value
+
+        System.out.println(queue.add("d")); // throw IllegalStateException since the queue is full
+
+        System.out.println(queue.remove()); // remove() remove peek value (FIFO), return it if !null
+        System.out.println(queue.remove());
+        System.out.println(queue.remove());
+        System.out.println(queue.remove()); // throw NoSuchElementException since the queue is empty
+    }
+}
+```
+
+`offer()`
+
+```java
+public class MyBlockingQueue {
+    public static void main(String[] args) {
+        ArrayBlockingQueue<Object> queue = new ArrayBlockingQueue<>(3);
+		// offer() return true/false
+        System.out.println(queue.offer("a")); // output true
+        System.out.println(queue.offer("b")); // output true
+        System.out.println(queue.offer("c")); // output true
+        System.out.println(queue.offer("d")); // output false
+    }
+}
+```
+
+`poll() and peak()`
+
+```java
+public class MyBlockingQueue {
+    public static void main(String[] args) {
+        ArrayBlockingQueue<Object> queue = new ArrayBlockingQueue<>(3);
+        // offer() return true/false
+        System.out.println(queue.offer("a")); // output true
+        System.out.println(queue.offer("b")); // output true
+        System.out.println(queue.offer("c")); // output true
+
+        System.out.println(queue.poll()); // output "a"
+        System.out.println(queue.poll()); // output "b"
+
+        System.out.println(queue.peek()); // peek(), output "c" since the peek of queue is "c"
+
+        System.out.println(queue.poll()); // output "c"
+        System.out.println(queue.poll()); // output "null"
+
+        System.out.println(queue.peek()); // peek(), output "null" since no element left
+    }
+}
+```
+
+`put() and take()`
+
+```java
+public class MyBlockingQueue {
+    public static void main(String[] args) throws InterruptedException {
+        ArrayBlockingQueue<Object> queue = new ArrayBlockingQueue<>(3);
+
+        // put() does not return anything!
+        queue.put("a");
+        queue.put("b");
+        queue.put("c");
+        System.out.println("a,b,c are placed into the queue, start to put d");
+        queue.put("d"); // block here since pull() would call await()
+        System.out.println("finish"); // would not print
+
+    }
+}
+```
+
+![image-20220102160839797](notes.assets/image-20220102160839797.png)
+
+> The last statement "finish" would not be printed since the thread would be blocked forever, until some other thread interrupt it.
+>
+> This also apply to take(), code is omitted here
+
+`offer() and pull`
+
+![image-20220102161313498](notes.assets/image-20220102161313498.png)
+
+We could add a specific time value to offer(), it would wait and try to add the object to the queue during that period of time.
+
+```java
+public class MyBlockingQueue {
+    public static void main(String[] args) throws InterruptedException {
+        ArrayBlockingQueue<Object> queue = new ArrayBlockingQueue<>(3);
+
+        // offer() return true/false
+        System.out.println(queue.offer("a")); // output true
+        System.out.println(queue.offer("b")); // output true
+        System.out.println(queue.offer("c")); // output true
+        System.out.println(queue.offer("d", 2, TimeUnit.SECONDS)); // wait 2 sec, then output false
+    }
+}
+```
+
