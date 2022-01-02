@@ -807,6 +807,8 @@ public class MyBlockingQueue {
 
 # 9. Thread pool
 
+## 9.1 Introduction
+
 > In the above sections, we used to write **new Thread()** to create a thread. However, it is not appropriate as whenever the system create or terminate a thread, it needs so many resources. 
 >
 > We could apply thread pool to solve this problem. Thread pool is basically a **container that contains a group of worker threads that are waiting for the job and reused many times**
@@ -816,6 +818,8 @@ public class MyBlockingQueue {
 > - `avoids latency in execution due to frequent creation and destruction`
 > - `save the resources`
 > - `make it easier to maintain the threads`
+
+## 9.2 Three methods to create a thread pool
 
 The thread pool is provided by **java.util.concurrent.Executors**. We could use the following methods to create a thread pool:
 
@@ -847,4 +851,109 @@ public class MyThreadPool {
 `cached thread pool`
 
 **When a new task comes in. If there is an idle thread waiting on the queue, then the task producer hands off the task to that thread. Otherwise, since the queue is always full, the executor creates a new thread to handle that task**.
+
+## 9.3 DO NOT USE the above methods!
+
+**!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!**
+
+> NOT a joke. Since the above methods may leads to OOM (out of memory), especially using a cached thread pool. Therefore, it is better to create a ThreadPoolExecutor by manually.
+
+When we click into Executors.newCachedThreadPool(), actually it is calling the constructor of ThreadPoolExecutor by sending different arguments (Also apply to other thread pool).
+
+```java
+public ThreadPoolExecutor(int corePoolSize,
+                          int maximumPoolSize,
+                          long keepAliveTime,
+                          TimeUnit unit,
+                          BlockingQueue<Runnable> workQueue) {
+    this(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue,
+         Executors.defaultThreadFactory(), defaultHandler);
+}
+```
+
+`Params:`
+
+- **corePoolSize**
+
+  The number of threads to keep in the pool, **even if they are idle**
+
+- **maximumPoolSize**
+
+  The maximum number of threads to allow in the pool
+
+- **keepAliveTime**
+
+  When the number of threads is greater than the core, this is the maximum time that excess idle threads will wait for new tasks before terminating.
+
+- **unit**
+
+  The time unit for the keepAliveTime argument (For example, TimeUnit.SECOND)
+
+- **workQueue**
+
+  The queue to use for holding tasks before they are executed. This queue will hold only the Runnable tasks submitted by the execute method.
+
+- **threadFactory**
+
+  The factory to use when the executor creates a new thread
+
+- **handler**
+
+  The handler to use when execution is blocked because the thread bounds and queue capacities are reached
+
+`Example`
+
+```java
+ExecutorService executor4 = new ThreadPoolExecutor(
+    3, 
+    6,
+    3L,
+    TimeUnit.SECONDS,
+    new LinkedBlockingQueue<>(3),
+    Executors.defaultThreadFactory(),
+    new ThreadPoolExecutor.AbortPolicy()
+);
+```
+
+Task 1 - 3 : assign to thread 1 - 3 (thread 4 - 6 are disabled)
+
+Task 4 - 6 : activate thread 4 - 6, assign tasks to them
+
+Task 7 - 9 : Since no thread could be used now, these tasks would be placed to the blocking queue. Now the blocking queue is full as it only have 3 places.
+
+Task 10 : It would be handled according to the handler. In this example, abort policy is used, so when this task comes in, the program would throw **RejectedExecutionException**.
+
+> To sum up, the maximum threads in the thread pool would be maximumPoolSize + size of workQueue, in the above example would be 6 + 3 = 9
+
+## 9.4 Four abort policies
+
+As mentioned in chapter 9.3. When thread bounds and queue capacities are reached, the task would be handled by a certain handler. There are four types of handler provided by RejectedExecutionHandler, they are:
+
+![image-20220102221756824](notes.assets/image-20220102221756824.png)
+
+1. **AbortPolicy**
+
+   ![image-20220102221846958](notes.assets/image-20220102221846958.png)
+
+   > Throw RejectedExecutionException
+
+2. **CallerRunsPolicy**
+
+   ![image-20220102221933647](notes.assets/image-20220102221933647.png)
+
+   > Return the task to the caller's thread. Let the caller's thread run it.
+   >
+   > `-> Go back to where it come from`
+
+3. **DiscardOldestPolicy**
+
+   ![image-20220102222131616](notes.assets/image-20220102222131616.png)
+
+   > Remove the head element in the blocking queue since it is the oldest task. Then execute the newly come in task immediately.
+
+4. **DiscardPolicy**
+
+   ![image-20220102222314737](notes.assets/image-20220102222314737.png)
+
+   > Do nothing to the new task (discard it)
 

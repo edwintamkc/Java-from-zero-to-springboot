@@ -1,5 +1,4 @@
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 public class MyThreadPool {
     public static void main(String[] args) {
@@ -12,5 +11,14 @@ public class MyThreadPool {
                 System.out.println(Thread.currentThread().getName() + " is running");
             });
         }
+
+        ExecutorService executor4 = new ThreadPoolExecutor(
+                3, 6,
+                3L,
+                TimeUnit.SECONDS,
+                new LinkedBlockingQueue<>(3),
+                Executors.defaultThreadFactory(),
+                new ThreadPoolExecutor.AbortPolicy()
+        );
     }
 }
