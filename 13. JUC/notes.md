@@ -805,3 +805,46 @@ public class MyBlockingQueue {
 }
 ```
 
+# 9. Thread pool
+
+> In the above sections, we used to write **new Thread()** to create a thread. However, it is not appropriate as whenever the system create or terminate a thread, it needs so many resources. 
+>
+> We could apply thread pool to solve this problem. Thread pool is basically a **container that contains a group of worker threads that are waiting for the job and reused many times**
+>
+> By using thread pool, it could:
+>
+> - `avoids latency in execution due to frequent creation and destruction`
+> - `save the resources`
+> - `make it easier to maintain the threads`
+
+The thread pool is provided by **java.util.concurrent.Executors**. We could use the following methods to create a thread pool:
+
+```java
+public class MyThreadPool {
+    public static void main(String[] args) {
+        // 1. create a thread pool that only support 1 thread
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        // 2. create a thread pool that supports many threads (3 thread in this example)
+        ExecutorService executor2 = Executors.newFixedThreadPool(3);
+        // 3. this thread pool would dynamically expand if needed
+        ExecutorService executor3 = Executors.newCachedThreadPool();
+        
+        
+        for (int i = 0; i < 10; i++) {
+            // execute the task from thread pool, instead of new Thread()
+            executor.execute(() -> { 
+                System.out.println(Thread.currentThread().getName() + " is running");
+            });
+        }
+    }
+}
+```
+
+`fiexed thread pool`
+
+**Fixed thread pool contains unbounded queue with a fixed number of threads, when new tasks comes in. It would assign the task to any idle thread; if all threads are busy, the task would wait for the idle thread in a FIFO queue**
+
+`cached thread pool`
+
+**When a new task comes in. If there is an idle thread waiting on the queue, then the task producer hands off the task to that thread. Otherwise, since the queue is always full, the executor creates a new thread to handle that task**.
+
