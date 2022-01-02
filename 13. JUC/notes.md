@@ -901,7 +901,21 @@ public ThreadPoolExecutor(int corePoolSize,
 
   The handler to use when execution is blocked because the thread bounds and queue capacities are reached
 
-`Example`
+`Why it may leads to out of memory (OOM)?`
+
+```java
+public static ExecutorService newCachedThreadPool() {
+    return new ThreadPoolExecutor(0, Integer.MAX_VALUE,
+                                  60L, TimeUnit.SECONDS,
+                                  new SynchronousQueue<Runnable>());
+}
+```
+
+The above code is the constructor of newCachedThreadPool, we could see that the maximum pool size is set to **Integer.MAX_VALUE**. Therefore the program may keep expanding the thread pool when there is a new task, which may leads to OOM.
+
+> So, we should create the ThreadPoolExecutor by ourselves! Following part is the example.
+
+`Example of creating personalized ThreadPoolExecutor`
 
 ```java
 ExecutorService executor4 = new ThreadPoolExecutor(
