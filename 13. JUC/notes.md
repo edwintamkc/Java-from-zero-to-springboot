@@ -522,6 +522,11 @@ Step:
 
    **Thread class constructor only accepts Runnable object, we could not use a Callable object to create a thread. However, we could use FutureTask as a medium, since future task class is one of the implementations of Callable interface and it accepts Callable as constructor argument.**
 
+> Callable VS Runnable
+>
+> - Callable could throw exception
+> - Callable could return value
+
 # 6. Useful utilities in concurrent package
 
 ## 6.1 CountDownLatch
@@ -618,4 +623,68 @@ public class MySemaphore {
 > Since the init permits is 2, only 2 threads could enter the session when they call acquire(). Other threads would be blocked in the acquire(). When they release(), the permits in semaphore would be incremented by 1, therefore the blocking thread could enter the critical session.
 
 ![image-20220102141300602](notes.assets/image-20220102141300602.png)
+
+# 7. ReadWriteLock
+
+> ReadWriteLock allows:
+>
+> - When a thread is writing, other threads could not write OR read (must be blocked)
+> - When there is no thread writing, it allows multiple threads read the resource at the same time
+
+```java
+public class MyReadWriteLock {
+    public static void main(String[] args) {
+        Resource resource = new Resource();
+        for (int i = 0; i < 4; i++) {
+            new Thread(() -> {
+                resource.put(Thread.currentThread().getName(), Thread.currentThread().getName());
+            }, String.valueOf(i)).start();
+        }
+
+        for (int i = 0; i < 4; i++) {
+            new Thread(() -> {
+                resource.get(Thread.currentThread().getName());
+            }, String.valueOf(i)).start();
+        }
+    }
+}
+
+class Resource{
+    private ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
+    private volatile Map<String, Object> resourceMap = new HashMap<>();
+
+    public void put(String key, Object val){
+        readWriteLock.writeLock().lock();
+
+        try {
+            System.out.println(Thread.currentThread().getName() + " is writing");
+            resourceMap.put(key, val);
+            System.out.println(Thread.currentThread().getName() + " finish writing");
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            readWriteLock.writeLock().unlock();
+        }
+    }
+
+    public Object get(String key){
+        readWriteLock.readLock().lock();
+
+        Object o = null;
+        try {
+            System.out.println(Thread.currentThread().getName() + " is getting");
+            o = resourceMap.get(key);
+            System.out.println(Thread.currentThread().getName() + " finish getting");
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            readWriteLock.readLock().unlock();
+            return o;
+        }
+
+    }
+}
+```
+
+![image-20220102145131471](notes.assets/image-20220102145131471.png)
 
