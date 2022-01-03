@@ -939,6 +939,13 @@ Task 7 - 9 : create thread 4 - 6 and assign task to them
 Task 10 : It would be handled according to the handler. In this example, abort policy is used, so when this task comes in, the program would throw **RejectedExecutionException**.
 
 > To sum up, the maximum threads in the thread pool would be maximumPoolSize + size of workQueue, in the above example would be 6 + 3 = 9
+>
+> Logic in execute()
+> 1. If there is a idle thread, assign task to it
+> 2. If there is no idle thread, and worker thread < corePoolSize, create a new thread and assign task to it
+> 3. If there is no idle thread, and the worker thread == corePoolSize, put the task to blocking queue
+> 4. If there is no idle thread, and the worker thread < maximumPoolSize, and the blocking queue is full, create a new thread and assign task to it
+> 5. If worker thread == maximumPoolSize and blocking queue is full, send the task to handler
 
 ## 9.4 Four abort policies
 
