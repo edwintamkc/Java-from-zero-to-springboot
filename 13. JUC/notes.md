@@ -928,6 +928,7 @@ ExecutorService executor4 = new ThreadPoolExecutor(
     new ThreadPoolExecutor.AbortPolicy()
 );
 ```
+**Let say there are 10 tasks submitted at the same time.**
 
 Task 1 - 3 : assign to thread 1 - 3 (thread 4 - 6 are disabled)
 
