@@ -930,11 +930,11 @@ ExecutorService executor4 = new ThreadPoolExecutor(
 ```
 **Let say there are 10 tasks submitted at the same time.**
 
-Task 1 - 3 : assign to thread 1 - 3 (thread 4 - 6 are disabled)
+Task 1 - 3 : create thread 1 - 3 and assign to tasks to them
+	
+Task 4 - 6 : place them to the blocking queue, now the blocking queue is full
 
-Task 4 - 6 : activate thread 4 - 6, assign tasks to them
-
-Task 7 - 9 : Since no thread could be used now, these tasks would be placed to the blocking queue. Now the blocking queue is full as it only have 3 places.
+Task 7 - 9 : create thread 4 - 6 and assign task to them
 
 Task 10 : It would be handled according to the handler. In this example, abort policy is used, so when this task comes in, the program would throw **RejectedExecutionException**.
 
