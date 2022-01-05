@@ -965,7 +965,7 @@ As mentioned in chapter 9.3. When thread bounds and queue capacities are reached
 
    > Return the task to the caller's thread. Let the caller's thread run it.
    >
-   > `-> Go back to where it come from`
+   > `-> Go back to where it came from`
 
 3. **DiscardOldestPolicy**
 
