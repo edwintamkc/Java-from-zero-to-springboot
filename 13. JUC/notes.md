@@ -949,7 +949,7 @@ Task 10 : It would be handled according to the handler. In this example, abort p
 
 ## 9.4 Four abort policies
 
-As mentioned in chapter 9.3. When thread bounds and queue capacities are reached, the task would be handled by a certain handler. There are four types of handler provided by RejectedExecutionHandler, they are:
+As mentioned in chapter 9.3. When thread bounds and queue capacities are reached, the task would be sent to a handler. There are four types of handler provided by RejectedExecutionHandler, they are:
 
 ![image-20220102221756824](notes.assets/image-20220102221756824.png)
 
