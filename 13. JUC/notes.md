@@ -844,7 +844,7 @@ public class MyThreadPool {
 }
 ```
 
-`fiexed thread pool`
+`fiexed thread pool` 
 
 **Fixed thread pool contains unbounded queue with a fixed number of threads, when new tasks comes in. It would assign the task to any idle thread; if all threads are busy, the task would wait for the idle thread in a FIFO queue**
 
