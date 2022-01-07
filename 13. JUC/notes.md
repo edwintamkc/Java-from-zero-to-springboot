@@ -743,7 +743,7 @@ public class MyBlockingQueue {
     public static void main(String[] args) {
         ArrayBlockingQueue<Object> queue = new ArrayBlockingQueue<>(3);
         // offer() return true/false
-        System.out.println(queue.offer("a")); // output true
+        System.out.println(queue.offer("a")); // output true 
         System.out.println(queue.offer("b")); // output true
         System.out.println(queue.offer("c")); // output true
 
