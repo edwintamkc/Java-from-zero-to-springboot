@@ -3,7 +3,7 @@
 ## 1.1 What is JUC?
 
 Java Util - Concurrent Collection (JUC) are a set of collections APIs that are designed and optimized specifically for synchronized multithreaded access. They are grouped under the *java.util.concurrent* package. 
-
+ 
 ## 1.2 Process and thread
 
 - Process means a program is in execution, whereas **thread means a segment of a process.**
