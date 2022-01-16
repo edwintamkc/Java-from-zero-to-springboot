@@ -4,7 +4,7 @@
 
 ![image-20211227185718579](notes.assets/image-20211227185718579.png)
 
-Create project by clicking file -> new project -> spring initializr
+Create project by clicking file -> new project -> spring initializr 
 
 ## 1.2 Project entry
 
