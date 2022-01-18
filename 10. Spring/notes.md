@@ -701,12 +701,12 @@ xmlns:context="http://www.springframework.org/schema/context"
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:context="http://www.springframework.org/schema/context" <!--導入呢個-->
+    xmlns:context="http://www.springframework.org/schema/context" <!--import呢個-->
     xsi:schemaLocation="http://www.springframework.org/schema/beans
         https://www.springframework.org/schema/beans/spring-beans.xsd
-        http://www.springframework.org/schema/context  <!--並且加入支持-->
-        https://www.springframework.org/schema/context/spring-context.xsd"> <!--並且加入支持-->
-	<!--開啟annotation-->
+        http://www.springframework.org/schema/context  
+        https://www.springframework.org/schema/context/spring-context.xsd"> 
+	<!--enable annotation-->
     <context:annotation-config/>
 
 	<bean id="cat" class="com.test.pojo.Cat"/>
