@@ -189,8 +189,8 @@ output如下
 >
 > 1. Hello 呢個object由邊個create？
 >    - 由Spring
-> 2. Hello object入面 str呢個property由邊個設置？
->    - 由Spring container設置
+> 2. Hello object入面 str呢個property由邊個set？
+>    - 由Spring container set
 
 > 總結：
 >
