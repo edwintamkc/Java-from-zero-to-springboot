@@ -92,7 +92,7 @@
 
 >之前係program 主動創建 object，控制權係programmer手上
 >
->用setter之後，會根據user需求創建，控制權係 user手上
+>用setter之後，會根據user嘅requirement create，控制權係 user手上
 
 ![image-20210216165236674](notes.assets/image-20210216165236674.png)
 
