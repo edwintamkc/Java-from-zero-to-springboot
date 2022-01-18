@@ -313,7 +313,7 @@ spring xml file提供嘅配置並不多，有以下幾個：
 
 ## 5.3 import
 
-> 導入其他 spring configuration file，`留意只能應用於spring configuration file，其他文件需要用其他方法`
+> import其他 spring configuration file，`留意只能應用於spring configuration file，其他文件需要用其他方法`
 
 `applicationContext.xml`
 
