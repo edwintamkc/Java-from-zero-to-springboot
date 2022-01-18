@@ -102,7 +102,7 @@
 - `IOC: 獲得object嘅方式反轉`
 - `Spring實現IOC嘅係 IOC container，其實現方法是 Dependency Injection (DI)`
 
-> 而用spring嘅話，spring IoC container就會幫我地控制 object 嘅創建以及管理，programmer唔需要再new object，set property； 稱為IoC
+> 而用spring嘅話，spring IoC container就會幫我地控制 object 嘅`創建`以及`管理`，programmer唔需要再new object，set property； 稱為IoC
 
 
 
@@ -187,8 +187,8 @@ output如下
 
 > 反思：
 >
-> 1. Hello 呢個object由邊個創建？
->    - 由Spring創建
+> 1. Hello 呢個object由邊個create？
+>    - 由Spring
 > 2. Hello object入面 str呢個property由邊個設置？
 >    - 由Spring container設置
 
