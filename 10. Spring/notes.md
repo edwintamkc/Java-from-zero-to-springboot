@@ -90,7 +90,7 @@
 
 ## 2.2 總結
 
->之前係program 主動創建 object，控制權係programmer手上
+>之前係program 主動create object，控制權係programmer手上
 >
 >用setter之後，會根據user嘅requirement create，控制權係 user手上
 
